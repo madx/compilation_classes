@@ -1,0 +1,18 @@
+int $var = 1000;
+
+test()
+int $var_locale=4;
+{
+  $var_locale;
+}
+
+func(int $c) 
+int $i;
+{
+  $i = 0;
+  $d = $c + $var;
+  while $i != $d do
+    $i = $i + 1;
+    $d = $d - 1;
+  end
+}
