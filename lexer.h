@@ -1,3 +1,6 @@
+#ifndef LEXER_H_
+#define LEXER_H_
+
 #define SCAN_BUF_LEN 256
 
 #define INT     300
@@ -47,3 +50,5 @@ char * strccat   (char *str, const char c);
 
 /* Met le premier caractère d'une chaîne à \0 pour la vider */
 void strempty  (char *str);
+
+#endif
