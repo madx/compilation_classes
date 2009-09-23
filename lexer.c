@@ -110,6 +110,7 @@ int char_type (char c) {
 
       case '(': case ')': case '{': case '}': case ';': case '.':
       case '+': case '-': case '*': case '/': case '%': case ',':
+      case '[': case ']':
         return CT_SPUNC;
         break;
 
