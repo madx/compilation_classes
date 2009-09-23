@@ -11,8 +11,8 @@ int yylex () {
   char c, next;
 
   char *keywords[] = {
-    "ENTIER", "DEBUT", "FIN", "SI", "ALORS", "SINON", "TANTQUE",
-    "FAIRE", "RENVOYER", "APPEL", "NON", "ET", "OU", "ECRIRE", "LIRE"
+    "entier", "debut", "fin", "si", "alors", "sinon", "tantque",
+    "faire", "renvoyer", "appel", "non", "et", "ou", "ecrire", "lire"
   };
 
   strempty (yytext);
