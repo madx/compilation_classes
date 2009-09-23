@@ -16,8 +16,7 @@ int main (int argc, char **argv) {
   }
 
   next_token ();
-
-  rule_arithmeticExpr ();
+  rule_program ();
 
   fclose (yyin);
 

@@ -9,6 +9,182 @@ extern FILE *yyin;
        int   yycc;
 int depth = 0;
 
+/* program -> funDefList '.'
+ * program -> varDecList ';' funDefList '.'
+ */
+void rule_program () {
+  if (yycc == INT) {
+    rule_varDecList ();
+    if (yycc == ';') {
+      next_token ();
+    } else expecting ("';'");
+  }
+
+  if (yycc == FUN_ID) {
+    rule_funDefList ();
+  } else expecting ("function declaration");
+
+  if (yycc == '.') {
+    puts ("program is terminated");
+  } else expecting ("'.'");
+}
+
+/* varDecList -> varDec varDecList2
+ */
+void rule_varDecList () {
+  if (yycc == INT) {
+    rule_varDec ();
+    if (yycc == ',') {
+      rule_varDecList2 ();
+    }
+  } else expecting ("keyword ENTIER");
+}
+
+/* varDecList2 -> ',' varDec varDecList2
+ * varDecList2 -> void
+ */
+void rule_varDecList2 () {
+  if (yycc == ',') {
+    next_token ();
+    if (yycc == INT) {
+      rule_varDec ();
+      if (yycc == ',') {
+        rule_varDecList2 ();
+      }
+    } else expecting ("keyword ENTIER");
+  } else expecting ("','");
+}
+
+/* varDec -> INT VAR_ID
+ * varDec -> INT VAR_ID '[' NUMBER ']'
+ */
+void rule_varDec () {
+  if (yycc == INT) {
+    next_token ();
+    if (yycc == VAR_ID) {
+      next_token ();
+
+      if (yycc == '[') {
+        next_token ();
+        if (yycc == NUMBER) {
+          next_token ();
+          if (yycc == ']') {
+            next_token ();
+          } else expecting ("matching closing bracket (']')");
+        } else expecting ("number");
+      }
+
+    } else expecting ("variable identifier");
+  } else expecting ("keyword ENTIER");
+}
+
+/* funDefList -> funDef funDefList
+ * funDefList -> void
+ */
+void rule_funDefList () {
+}
+
+/* funDef -> FUN_ID paramList instructionBlock
+ * funDef -> FUN_ID paramList varDecList ';' instructionBlock
+ */
+void rule_funDef () {
+}
+
+/* paramList -> '(' varDecList ')'
+ * paramList -> '(' ')'
+ */
+void rule_paramList () {
+}
+
+/* instruction -> instructionBlock
+ * instruction -> callInstruction
+ * instruction -> setInstruction
+ * instruction -> ifInstruction
+ * instruction -> whileInstruction
+ * instruction -> returnInstruction
+ * instruction -> writeInstruction
+ * instruction -> voidInstruction
+ */
+void rule_instruction () {
+}
+
+/* instructionBlock -> '{' instructionList '}'
+ */
+void rule_instructionBlock () {
+}
+
+/* instructionList -> instruction instructionList
+ * instructionList -> void
+ */
+void rule_instructionList () {
+}
+
+/* callInstruction -> funCall ';'
+ */
+void rule_callInstruction () {
+}
+
+/* setInstruction -> variable '=' expression ';'
+ */
+void rule_setInstruction () {
+}
+
+/* ifInstruction -> IF expression THEN instruction ELSE instruction
+ * ifInstruction -> IF expression THEN instruction
+ */
+void rule_ifInstruction () {
+}
+
+/* whileInstruction -> WHILE expression DO instruction
+ */
+void rule_whileInstruction () {
+}
+
+/* returnInstruction -> RETURN expression ';'
+ */
+void rule_returnInstruction () {
+}
+
+/* writeInstruction -> WRITE '(' expression ')' ';'
+ */
+void rule_writeInstruction () {
+}
+
+/* voidInstruction -> ';'
+ */
+void rule_voidInstruction () {
+}
+
+/* expression -> conjunction OR expression
+ * expression -> conjunction
+ */
+void rule_expression () {
+}
+
+/* conjunction -> comparison AND conjunction
+ * conjunction -> comparison
+ */
+void rule_conjunction () {
+}
+
+/* comparison -> arithmeticExpr EQ arithmeticExpr
+ * comparison -> arithmeticExpr NEQ arithmeticExpr
+ * comparison -> arithmeticExpr '<' arithmeticExpr
+ * comparison -> arithmeticExpr LE arithmeticExpr
+ * comparison -> arithmeticExpr
+ */
+void rule_comparison () {
+  if (yycc == NUMBER) {
+    entering ("comparison");
+    rule_arithmeticExpr ();
+    if (yycc == EQ || yycc == NEQ || yycc == '<' || yycc == LE) {
+      next_token ();
+      rule_arithmeticExpr ();
+    }
+    exiting ("comparison");
+  } else expecting ("number");
+}
+
 /* arithmeticExpr -> term '+' arithmeticExpr
  * arithmeticExpr -> term '-' arithmeticExpr
  * arithmeticExpr -> term
@@ -81,5 +257,5 @@ void expecting (char *expected) {
 
 void next_token () {
   yycc = yylex ();
-  printf ("%d is %s\n", yycc, yytext);
+  printf ("%3d -> %s\n", yycc, yytext);
 }
