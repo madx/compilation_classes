@@ -1,0 +1,126 @@
+program             -> funDefList '.'
+program             -> varDecList ';' funDefList '.'
+varDecList          -> varDec varDecList2
+varDecList2         -> ',' varDec varDecList2
+varDecList2         -> void
+varDec              -> INT VAR_ID
+varDec              -> INT VAR_ID '[' NUMBER ']'
+funDefList          -> funDef funDefList
+funDefList          -> void
+funDef              -> FUN_ID paramList instructionBlock
+funDef              -> FUN_ID paramList varDecList ';' instructionBlock
+paramList           -> '(' varDecList ')'
+paramList           -> '(' ')'
+instruction         -> instructionBlock
+instruction         -> callInstruction
+instruction         -> setInstruction
+instruction         -> ifInstruction
+instruction         -> whileInstruction
+instruction         -> returnInstruction
+instruction         -> writeInstruction
+instruction         -> voidInstruction
+instructionBlock    -> '{' instructionList '}'
+instructionList     -> instruction instructionList
+instructionList     -> void
+callInstruction     -> funCall ';'
+setInstruction      -> variable '=' expression ';'
+ifInstruction       -> IF expression THEN instruction ELSE instruction
+ifInstruction       -> IF expression THEN instruction
+whileInstruction    -> WHILE expression DO instruction
+returnInstruction   -> RETURN expression ';'
+writeInstruction    -> WRITE '(' expression ')' ';'
+voidInstruction     -> ';'
+expression          -> conjunction OR expression
+expression          -> conjunction
+conjunction         -> comparison AND conjunction
+conjunction         -> comparison
+comparison          -> arithmeticExpr EQ arithmeticExpr
+comparison          -> arithmeticExpr NEQ arithmeticExpr
+comparison          -> arithmeticExpr '<' arithmeticExpr
+comparison          -> arithmeticExpr LE arithmeticExpr
+comparison          -> arithmeticExpr
+arithmeticExpr      -> term '+' arithmeticExpr
+arithmeticExpr      -> term '-' arithmeticExpr
+arithmeticExpr      -> term
+term                -> factor '/' term
+term                -> factor '*' term
+term                -> factor
+factor              -> '(' expression ')'
+factor              -> NUMBER
+factor              -> callInstruction
+factor              -> variable
+factor              -> READ '(' ')'
+variable            -> VAR_ID '[' expression ']'
+variable            -> VAR_ID
+funCall             -> FUN_ID arguments
+arguments           -> '(' exprList ')'
+exprList            -> expression exprList2 |
+exprList            -> void
+exprList2           -> ',' expression exprList2
+exprList2           -> void
+
+    PREMIERS:
+
+Pr(program)           = {INT, FUN_ID, '.'}
+Pr(varDecList)        = {INT}
+Pr(varDecList2)       = {','}
+Pr(varDec)            = {INT}
+Pr(funDefList)        = {FUN_ID, @}
+Pr(funDef)            = {FUN_ID}
+Pr(paramList)         = {'('}
+Pr(instruction)       = {VAR_ID, '{', IF, WHILE, FUN_ID, RETURN, WRITE, ';'}
+Pr(instructionBlock)  = {'{'}
+Pr(instructionList)   = Pr(instruction) U {@}
+Pr(callInstruction)   = {}
+Pr(setInstruction)    = {}
+Pr(ifInstruction)     = {}
+Pr(whileInstruction)  = {}
+Pr(returnInstruction) = {}
+Pr(writeInstruction)  = {}
+Pr(voidInstruction)   = {}
+Pr(expression)        = {'(', NUMBER, VAR_ID, FUN_ID, READ}
+Pr(conjunction)       = Pr(expression)
+Pr(comparison)        = Pr(expression)
+Pr(arithmeticExpr)    = Pr(expression)
+Pr(term)              = Pr(expression)
+Pr(factor)            = Pr(expression)
+Pr(variable)          = {VAR_ID}
+Pr(funCall)           = {FUN_ID}
+Pr(arguments)         = {'('}
+Pr(exprList)          = Pr(expression) U {@}
+Pr(exprList2)         = {',', @}
+
+  SUIVANTS:
+
+if there is a rule of the form Aj → wAiw' , then
+    * if the terminal a is in Fi(w' ), then add a to Fo(Ai)
+    * if ε is in Fi(w' ), then add Fo(Aj) to Fo(Ai)
+
+Sv(program)           = {$}
+Sv(varDecList)        = {';', ')'}
+Sv(varDecList2)       = {';', ')'}
+Sv(varDec)            = {',', ';', ')'}
+Sv(funDefList)        = {'.'}
+Sv(funDef)            = {'.', FUN_ID}
+Sv(paramList)         = {';', ')', '{'}
+Sv(instruction)       = {'{', '}', ELSE}
+Sv(instructionBlock)  = {'.', FUN_ID, '{', '}', ELSE}
+Sv(instructionList)   = {'}'}
+Sv(callInstruction)   = {'.', FUN_ID, '{', '}', ELSE}
+Sv(setInstruction)    = {'.', FUN_ID, '{', '}', ELSE}
+Sv(ifInstruction)     = {'.', FUN_ID, '{', '}', ELSE}
+Sv(whileInstruction)  = {'.', FUN_ID, '{', '}', ELSE}
+Sv(returnInstruction) = {'.', FUN_ID, '{', '}', ELSE}
+Sv(writeInstruction)  = {'.', FUN_ID, '{', '}', ELSE}
+Sv(voidInstruction)   = {'.', FUN_ID, '{', '}', ELSE}
+Sv(expression)        = {';', THEN, DO, ')', ']', ','}
+Sv(conjunction)       = {OR}
+Sv(comparison)        = {AND}
+Sv(arithmeticExpr)    = {EQ, NEQ, '<', LE}
+Sv(term)              = {'+', '-', EQ, NEQ, '<', LE}
+Sv(factor)            = {'*', '/', '+', '-', EQ, NEQ, '<', LE}
+Sv(variable)          = {*', '/', '+', '-', EQ, NEQ, '<', LE}
+Sv(funCall)           = {';'}
+Sv(arguments)         = {';'}
+Sv(exprList)          = {')', ','}
+Sv(exprList2)         = {')', ','}
