@@ -3,7 +3,7 @@
 #include <string.h>
 #include "lexer.h"
 
-char yytext[128];
+char  yytext[128];
 FILE *yyin;
 
 int yylex () {
@@ -26,9 +26,9 @@ int yylex () {
         break;
       case CT_DPUNC:
         switch (c) {
-          case '=': return scan_comp_op ('=', EQ); break;
-          case '>': return scan_comp_op ('>', GE); break;
-          case '<': return scan_comp_op ('<', LE); break;
+          case '=': return scan_comp_op ('=', EQ);  break;
+          case '!': return scan_comp_op ('!', NEQ); break;
+          case '<': return scan_comp_op ('<', LE);  break;
         }
         break;
 
