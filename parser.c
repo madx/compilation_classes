@@ -7,13 +7,15 @@
 extern char  yytext[128];
 extern FILE *yyin;
 extern int   yyline;
-       int   yycc, depth = 0;
+       int   yycc;
+       int   depth = 0;
        char *yyfile;
 
 /* program -> funDefList '.'
  * program -> varDecList ';' funDefList '.'
  */
 void rule_program () {
+  entering ("program");
   if (yycc == INT) {
     rule_varDecList ();
 
@@ -27,14 +29,14 @@ void rule_program () {
     rule_funDefList ();
   }
 
-  if (yycc == '.') {
-    puts ("program is terminated, syntax OK");
-  } else expecting ("'.'");
+  if (yycc != '.') expecting ("'.'");
+  exiting ("program");
 }
 
 /* varDecList -> varDec varDecList2
  */
 void rule_varDecList () {
+  entering ("var_dec_list");
   if (yycc == INT) {
     rule_varDec ();
 
@@ -43,12 +45,14 @@ void rule_varDecList () {
     }
 
   } else expecting ("keyword ENTIER");
+  exiting ("var_dec_list");
 }
 
 /* varDecList2 -> ',' varDec varDecList2
  * varDecList2 -> void
  */
 void rule_varDecList2 () {
+  entering ("var_dec_list2");
   if (yycc == ',') {
     next_token ();
 
@@ -60,12 +64,14 @@ void rule_varDecList2 () {
       }
     } else expecting ("keyword ENTIER");
   } else expecting ("','");
+  exiting ("var_dec_list2");
 }
 
 /* varDec -> INT VAR_ID
  * varDec -> INT VAR_ID '[' NUMBER ']'
  */
 void rule_varDec () {
+  entering ("var_dec");
   if (yycc == INT) {
     next_token ();
 
@@ -87,12 +93,14 @@ void rule_varDec () {
 
     } else expecting ("variable identifier");
   } else expecting ("keyword ENTIER");
+  exiting ("var_dec");
 }
 
 /* funDefList -> funDef funDefList
  * funDefList -> void
  */
 void rule_funDefList () {
+  entering ("fun_def_list");
   if (yycc == FUN_ID) {
     rule_funDef ();
 
@@ -100,12 +108,14 @@ void rule_funDefList () {
       rule_funDefList ();
     }
   } else expecting ("function identifier");
+  exiting ("fun_def_list");
 }
 
 /* funDef -> FUN_ID paramList instructionBlock
  * funDef -> FUN_ID paramList varDecList ';' instructionBlock
  */
 void rule_funDef () {
+  entering ("fun_def");
   if (yycc == FUN_ID) {
     next_token ();
 
@@ -126,12 +136,14 @@ void rule_funDef () {
       } else expecting ("'{'");
     } else expecting ("'('");
   } else expecting ("function identifier");
+  exiting ("fun_def");
 }
 
 /* paramList -> '(' varDecList ')'
  * paramList -> '(' ')'
  */
 void rule_paramList () {
+  entering ("param_list");
   if (yycc == '(') {
     next_token ();
     if (yycc == INT) {
@@ -141,6 +153,7 @@ void rule_paramList () {
       next_token ();
     } else expecting ("')'");
   } else expecting ("'('");
+  exiting ("param_list");
 }
 
 /* instruction -> instructionBlock
@@ -153,6 +166,7 @@ void rule_paramList () {
  * instruction -> voidInstruction
  */
 void rule_instruction () {
+  entering ("instruction");
   if        (yycc == VAR_ID) { rule_setInstruction ();
   } else if (yycc == FUN_ID) { rule_callInstruction ();
   } else if (yycc == IF)     { rule_ifInstruction ();
@@ -162,11 +176,13 @@ void rule_instruction () {
   } else if (yycc == ';')    { rule_voidInstruction ();
   } else if (yycc == '{')    { rule_instructionBlock ();
   } else expecting ("instruction");
+  exiting ("instruction");
 }
 
 /* instructionBlock -> '{' instructionList '}'
  */
 void rule_instructionBlock () {
+  entering ("instruction_block");
   if (yycc == '{') {
     next_token ();
     rule_instructionList ();
@@ -176,12 +192,14 @@ void rule_instructionBlock () {
 
     } else expecting ("'}");
   } else expecting ("'{'");
+  exiting ("instruction_block");
 }
 
 /* instructionList -> instruction instructionList
  * instructionList -> void
  */
 void rule_instructionList () {
+  entering ("instruction_list");
   if (yycc == VAR_ID || yycc == FUN_ID || yycc == '{'    || yycc == ';' ||
       yycc == IF     || yycc == WHILE  || yycc == RETURN || yycc == WRITE ) {
     rule_instruction ();
@@ -193,11 +211,13 @@ void rule_instructionList () {
 
   } else if (yycc == '}') return;
   else expecting ("'}'");
+  exiting ("instruction_list");
 }
 
 /* callInstruction -> funCall ';'
  */
 void rule_callInstruction () {
+  entering ("call_instruction");
   if (yycc == FUN_ID) {
     rule_funCall ();
 
@@ -206,11 +226,13 @@ void rule_callInstruction () {
 
     } else expecting ("';'");
   } else expecting ("function identifier");
+  exiting ("call_instruction");
 }
 
 /* setInstruction -> variable '=' expression ';'
  */
 void rule_setInstruction () {
+  entering ("set_instruction");
   if (yycc == VAR_ID) {
     rule_variable ();
 
@@ -224,12 +246,14 @@ void rule_setInstruction () {
       } else expecting ("';'");
     } else expecting ("'='");
   } else expecting ("variable identifier");
+  exiting ("set_instruction");
 }
 
 /* ifInstruction -> IF expression THEN instruction ELSE instruction
  * ifInstruction -> IF expression THEN instruction
  */
 void rule_ifInstruction () {
+  entering ("if_instruction");
   if (yycc == IF) {
     next_token ();
 
@@ -259,11 +283,13 @@ void rule_ifInstruction () {
       } else expecting ("keyword THEN");
     } else expecting ("expression");
   } else expecting ("keyword IF");
+  exiting ("if_instruction");
 }
 
 /* whileInstruction -> WHILE expression DO instruction
  */
 void rule_whileInstruction () {
+  entering ("while_instruction");
   if (yycc == WHILE) {
     next_token ();
 
@@ -283,11 +309,13 @@ void rule_whileInstruction () {
       } else expecting ("keyword THEN");
     } else expecting ("expression");
   } else expecting ("keyword IF");
+  exiting ("while_instruction");
 }
 
 /* returnInstruction -> RETURN expression ';'
  */
 void rule_returnInstruction () {
+  entering ("return_instruction");
   if (yycc == RETURN) {
     next_token ();
 
@@ -301,11 +329,13 @@ void rule_returnInstruction () {
       } else expecting ("';'");
     } else expecting ("expression");
   } else expecting ("keyword RETURN");
+  exiting ("return_instruction");
 }
 
 /* writeInstruction -> WRITE '(' expression ')' ';'
  */
 void rule_writeInstruction () {
+  entering ("write_instruction");
   if (yycc == WRITE) {
     next_token ();
 
@@ -327,18 +357,22 @@ void rule_writeInstruction () {
       } else expecting ("expression");
     } else expecting ("'('");
   } else expecting ("keyword RETURN");
+  exiting ("write_instruction");
 }
 
 /* voidInstruction -> ';'
  */
 void rule_voidInstruction () {
+  entering ("void_instruction");
   if (yycc == ';') next_token (); else expecting ("';'");
+  exiting ("void_instruction");
 }
 
 /* expression -> conjunction OR expression
  * expression -> conjunction
  */
 void rule_expression () {
+  entering ("expression");
   if (yycc == '('  || yycc == NUMBER || yycc == VAR_ID ||
       yycc == READ || yycc == FUN_ID) {
     rule_conjunction ();
@@ -353,12 +387,14 @@ void rule_expression () {
     }
 
   } else expecting ("conjunction");
+  exiting ("expression");
 }
 
 /* conjunction -> comparison AND conjunction
  * conjunction -> comparison
  */
 void rule_conjunction () {
+  entering ("conjunction");
   if (yycc == '(' || yycc == NUMBER || yycc == VAR_ID ||
       yycc == READ || yycc == FUN_ID) {
     rule_comparison ();
@@ -373,6 +409,7 @@ void rule_conjunction () {
     }
 
   } else expecting ("comparison");
+  exiting ("conjunction");
 }
 
 /* comparison -> arithmeticExpr EQ arithmeticExpr
@@ -382,6 +419,7 @@ void rule_conjunction () {
  * comparison -> arithmeticExpr
  */
 void rule_comparison () {
+  entering ("comparison");
   if (yycc == '('  || yycc == NUMBER || yycc == VAR_ID ||
       yycc == READ || yycc == FUN_ID) {
     rule_arithmeticExpr ();
@@ -396,6 +434,7 @@ void rule_comparison () {
     }
 
   } else expecting ("arithmetic expression");
+  exiting ("comparison");
 }
 
 /* arithmeticExpr -> term '+' arithmeticExpr
@@ -403,6 +442,7 @@ void rule_comparison () {
  * arithmeticExpr -> term
  */
 void rule_arithmeticExpr () {
+  entering ("arithmetic_expr");
   if (yycc == '('  || yycc == NUMBER || yycc == VAR_ID ||
       yycc == READ || yycc == FUN_ID) {
     rule_term ();
@@ -413,6 +453,7 @@ void rule_arithmeticExpr () {
     }
 
   } else expecting ("term");
+  exiting ("arithmetic_expr");
 }
 
 /* term -> factor '/' term
@@ -420,6 +461,7 @@ void rule_arithmeticExpr () {
  * term -> factor
  */
 void rule_term () {
+  entering ("term");
   if (yycc == '('  || yycc == NUMBER || yycc == VAR_ID ||
       yycc == READ || yycc == FUN_ID) {
     rule_factor ();
@@ -430,15 +472,17 @@ void rule_term () {
     }
 
   } else expecting ("factor");
+  exiting ("term");
 }
 
-/* factor              -> '(' expression ')'
- * factor              -> NUMBER
- * factor              -> funCall
- * factor              -> variable
- * factor              -> READ '(' ')'
+/* factor -> '(' expression ')'
+ * factor -> NUMBER
+ * factor -> funCall
+ * factor -> variable
+ * factor -> READ '(' ')'
  */
 void rule_factor () {
+  entering ("factor");
   if (yycc == NUMBER) {
     next_token ();
 
@@ -470,12 +514,14 @@ void rule_factor () {
     } else expecting ("'('");
 
   } else expecting ("factor");
+  exiting ("factor");
 }
 
-/* variable            -> VAR_ID '[' expression ']'
- * variable            -> VAR_ID
+/* variable -> VAR_ID '[' expression ']'
+ * variable -> VAR_ID
  */
 void rule_variable () {
+  entering ("variable");
   if (yycc == VAR_ID) {
     next_token ();
 
@@ -489,21 +535,25 @@ void rule_variable () {
     }
 
   } else expecting ("variable identifier");
+  exiting ("variable");
 }
 
-/* funCall             -> FUN_ID arguments
+/* funCall -> FUN_ID arguments
  */
 void rule_funCall () {
+  entering ("fun_call");
   if (yycc == FUN_ID) {
     next_token ();
     rule_arguments ();
 
   } else expecting ("function identifier");
+  exiting ("fun_call");
 }
 
-/* arguments           -> '(' exprList ')'
+/* arguments -> '(' exprList ')'
  */
 void rule_arguments () {
+  entering ("arguments");
   if (yycc == '(') {
     next_token ();
     rule_exprList ();
@@ -512,12 +562,14 @@ void rule_arguments () {
       next_token ();
     } else expecting ("')'");
   } else expecting ("'('");
+  exiting ("arguments");
 }
 
-/* exprList            -> expression exprList2
- * exprList            -> void
+/* exprList -> expression exprList2
+ * exprList -> void
  */
 void rule_exprList () {
+  entering ("expr_list");
   if (yycc == '('  || yycc == NUMBER || yycc == VAR_ID ||
       yycc == READ || yycc == FUN_ID) {
     rule_expression ();
@@ -526,17 +578,21 @@ void rule_exprList () {
       rule_exprList2 ();
     }
   }
+  exiting ("expr_list");
 }
 
-/* exprList2           -> ',' expression exprList2
- * exprList2           -> void
+/* exprList2 -> ',' expression exprList2
+ * exprList2 -> void
  */
 void rule_exprList2 () {
+  entering ("expr_list2");
   if (yycc == ',') {
     next_token ();
+
     if (yycc == '('  || yycc == NUMBER || yycc == VAR_ID ||
       yycc == READ || yycc == FUN_ID) {
       rule_expression ();
+
       if (yycc == '('  || yycc == NUMBER || yycc == VAR_ID ||
           yycc == READ || yycc == FUN_ID) {
         rule_exprList2 ();
@@ -544,26 +600,27 @@ void rule_exprList2 () {
 
     } else expecting ("expression");
   } else expecting ("','");
+  exiting ("expr_list2");
 }
 
 /* Utilitaires */
 
-void entering (char *s) {
-  int i;
-  for (i = 0; i < depth; i++) printf ("  ");
-  printf ("entering %s\n", s);
-  depth++;
+void entering (char *rule) {
+  /* int i; */
+  /* for (i = 0; i < depth; i++) printf ("  "); */
+  /* printf ("<%s>\n", rule); */
+  /* depth++; */
 }
 
-void exiting (char *s) {
-  int i;
-  depth--;
-  for (i = 0; i < depth; i++) printf ("  ");
-  printf ("exiting %s\n", s);
+void exiting (char *rule) {
+  /* int i; */
+  /* depth--; */
+  /* for (i = 0; i < depth; i++) printf ("  "); */
+  /* printf ("</%s>\n", rule); */
 }
 
 void expecting (char *expected) {
-  char *type;
+  char type[280];
   switch (yycc) {
     case 330: sprintf(type, "variable identifier (%s)", yytext); break;
     case 331: sprintf(type, "function identifier (%s)", yytext); break;
