@@ -3,8 +3,9 @@
 #include <string.h>
 #include "lexer.h"
 
-char  yytext[128];
+char  yytext[256];
 FILE *yyin;
+int   yyline = 1;
 
 int yylex () {
   int  i, type;
@@ -24,6 +25,7 @@ int yylex () {
         sprintf (yytext, "%c", c);
         return c;
         break;
+
       case CT_DPUNC:
         switch (c) {
           case '=': return scan_comp_op ('=', EQ);  break;
@@ -86,6 +88,11 @@ int yylex () {
         sprintf (yytext, "%d", c);
         return CT_OTHER;
         break;
+
+      case CT_WHITE:
+        if (c == '\r' || c == '\n') yyline++;
+        break;
+
     }
   }
 
@@ -100,7 +107,7 @@ int char_type (char c) {
     return CT_DIGIT;
   } else {
     switch(c) {
-      case ' ': case '\n': case '\t': case '\r':
+      case ' ': case '\n': case '\r': case '\t':
         return CT_WHITE;
         break;
 
