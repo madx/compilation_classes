@@ -48,6 +48,7 @@ term                -> factor
 factor              -> '(' expression ')'
 factor              -> NUMBER
 factor              -> callInstruction
+!!! factor -> funCall
 factor              -> variable
 factor              -> READ '(' ')'
 variable            -> VAR_ID '[' expression ']'
