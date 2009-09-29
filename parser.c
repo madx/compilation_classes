@@ -6,8 +6,9 @@
 
 extern char  yytext[128];
 extern FILE *yyin;
-       int   yycc;
-int depth = 0;
+extern int   yyline;
+       int   yycc, depth = 0;
+       char *yyfile;
 
 /* program -> funDefList '.'
  * program -> varDecList ';' funDefList '.'
@@ -294,6 +295,10 @@ void rule_returnInstruction () {
         yycc == READ || yycc == FUN_ID) {
       rule_expression ();
 
+      if (yycc == ';') {
+        next_token ();
+
+      } else expecting ("';'");
     } else expecting ("expression");
   } else expecting ("keyword RETURN");
 }
@@ -313,6 +318,11 @@ void rule_writeInstruction () {
 
         if (yycc == ')') {
           next_token ();
+
+          if (yycc == ';') {
+            next_token ();
+
+          } else expecting ("';'");
         } else expecting ("')'");
       } else expecting ("expression");
     } else expecting ("'('");
@@ -424,7 +434,7 @@ void rule_term () {
 
 /* factor              -> '(' expression ')'
  * factor              -> NUMBER
- * factor              -> callInstruction
+ * factor              -> funCall
  * factor              -> variable
  * factor              -> READ '(' ')'
  */
@@ -436,7 +446,7 @@ void rule_factor () {
     rule_variable ();
 
   } else if (yycc == FUN_ID) {
-    rule_callInstruction ();
+    rule_funCall ();
 
   } else if (yycc == '(') {
     next_token ();
@@ -527,7 +537,10 @@ void rule_exprList2 () {
     if (yycc == '('  || yycc == NUMBER || yycc == VAR_ID ||
       yycc == READ || yycc == FUN_ID) {
       rule_expression ();
-      rule_exprList2 ();
+      if (yycc == '('  || yycc == NUMBER || yycc == VAR_ID ||
+          yycc == READ || yycc == FUN_ID) {
+        rule_exprList2 ();
+      }
 
     } else expecting ("expression");
   } else expecting ("','");
@@ -550,7 +563,7 @@ void exiting (char *s) {
 }
 
 void expecting (char *expected) {
-  char type[64];
+  char *type;
   switch (yycc) {
     case 330: sprintf(type, "variable identifier (%s)", yytext); break;
     case 331: sprintf(type, "function identifier (%s)", yytext); break;
@@ -558,7 +571,8 @@ void expecting (char *expected) {
     case 0:   sprintf(type, "end of file");                      break;
     default:  sprintf(type, "'%s'", yytext);                     break;
   }
-  fprintf (stderr, "error: unexpected %s, expecting %s (%d)\n", type, expected);
+  fprintf (stderr, "%s.%d: error: unexpected %s, expecting %s\n",
+           yyfile, yyline, type, expected);
   exit (EXIT_FAILURE);
 }
 

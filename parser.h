@@ -30,9 +30,9 @@ void rule_arguments         ();
 void rule_exprList          ();
 void rule_exprList2         ();
 
-void entering  (char *s);
-void exiting   (char *s);
-void expecting (char *expected);
+void entering (char *rule);
+void exiting  (char *rule);
+void expecting  (char *expected);
 void next_token ();
 
 #endif
