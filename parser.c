@@ -15,9 +15,11 @@ extern int   yyline;
 /* program -> funDefList '.'
  * program -> varDecList ';' funDefList '.'
  */
-void rule_program () {
+Node * rule_program () {
+  Node *var_dec_list = NULL, *fun_def_list = NULL, *child = NULL;
+  Value *val;
   if (yycc == INT) {
-    rule_varDecList ();
+    var_dec_list = rule_varDecList ();
 
     if (yycc == ';') {
       next_token ();
@@ -26,56 +28,84 @@ void rule_program () {
   }
 
   if (yycc == FUN_ID) {
-    rule_funDefList ();
+    fun_def_list = rule_funDefList ();
   }
 
   if (yycc != '.') expecting ("'.'");
+
+  if (NULL != var_dec_list) {
+    Node_lastSibling (var_dec_list)->next = fun_def_list;
+    child = var_dec_list;
+  } else {
+    child = fun_def_list;
+  }
+
+  val = Value_str ("root");
+
+  return Node_new (N_PROGRAM, val, NULL, child);
 }
 
 /* varDecList -> varDec varDecList2
  */
-void rule_varDecList () {
+Node * rule_varDecList () {
+  Node *head = NULL, *tail = NULL;
+
   if (yycc == INT) {
-    rule_varDec ();
+    head = rule_varDec ();
 
     if (yycc == ',') {
-      rule_varDecList2 ();
+      tail = rule_varDecList2 ();
+      Node_lastSibling(head)->next = tail;
     }
 
   } else expecting ("keyword ENTIER");
+
+  return Node_new (N_DEC_LIST, NULL, NULL, head);
 }
 
 /* varDecList2 -> ',' varDec varDecList2
  * varDecList2 -> void
  */
-void rule_varDecList2 () {
+Node * rule_varDecList2 () {
+  Node *head = NULL, *tail = NULL;
+
   if (yycc == ',') {
     next_token ();
 
     if (yycc == INT) {
-      rule_varDec ();
+      head = rule_varDec ();
 
       if (yycc == ',') {
-        rule_varDecList2 ();
+        tail = rule_varDecList2 ();
+        Node_lastSibling(head)->next = tail;
       }
     } else expecting ("keyword ENTIER");
   } else expecting ("','");
+
+  return Node_new (N_DEC_LIST, NULL, NULL, head);
 }
 
 /* varDec -> INT VAR_ID
  * varDec -> INT VAR_ID '[' NUMBER ']'
  */
-void rule_varDec () {
+Node * rule_varDec () {
+  Value *name = NULL;
+  Node  *index = NULL;
+
   if (yycc == INT) {
     next_token ();
 
     if (yycc == VAR_ID) {
+      name = Value_str (yytext);
       next_token ();
 
       if (yycc == '[') {
         next_token ();
 
         if (yycc == NUMBER) {
+          index = Node_new (N_INT_EXP,
+                            Value_int (atoi (yytext)),
+                            NULL, NULL);
           next_token ();
 
           if (yycc == ']') {
@@ -87,33 +117,45 @@ void rule_varDec () {
 
     } else expecting ("variable identifier");
   } else expecting ("keyword ENTIER");
+
+  return Node_new (N_VAR_DEC, name, index, NULL);
 }
 
 /* funDefList -> funDef funDefList
  * funDefList -> void
  */
-void rule_funDefList () {
+Node * rule_funDefList () {
+  Node *head = NULL, *tail = NULL;
+
   if (yycc == FUN_ID) {
-    rule_funDef ();
+    head = rule_funDef ();
 
     if (yycc == FUN_ID) {
-      rule_funDefList ();
+      tail = rule_funDefList ();
+      Node_lastSibling(head)->next = tail;
     }
   } else expecting ("function identifier");
+
+  return Node_new (N_DEC_LIST, NULL, NULL, head);
 }
 
 /* funDef -> FUN_ID paramList instructionBlock
  * funDef -> FUN_ID paramList varDecList ';' instructionBlock
  */
-void rule_funDef () {
+Node * rule_funDef () {
+  Value *name = NULL;
+  Node  *params = NULL, *variables = NULL, *body = NULL;
+
   if (yycc == FUN_ID) {
+    name = Value_str (yytext);
     next_token ();
 
     if (yycc == '(') {
-      rule_paramList ();
+      params = rule_paramList ();
 
       if (yycc == INT) {
-        rule_varDecList ();
+        variables = rule_varDecList ();
+        Node_lastSibling(params)->next = variables;
 
         if (yycc == ';') {
           next_token ();
@@ -121,26 +163,37 @@ void rule_funDef () {
       }
 
       if (yycc == '{') {
-        rule_instructionBlock ();
+        body = rule_instructionBlock ();
+        if (NULL != variables) { Node_lastSibling (variables)->next = body; }
+        else                   { Node_lastSibling (params)->next    = body; }
 
       } else expecting ("'{'");
     } else expecting ("'('");
   } else expecting ("function identifier");
+
+  return Node_new (N_FUN_DEC, name, NULL, params);
 }
 
 /* paramList -> '(' varDecList ')'
  * paramList -> '(' ')'
  */
-void rule_paramList () {
+Node * rule_paramList () {
+  Node *list = NULL;
+
   if (yycc == '(') {
     next_token ();
+
     if (yycc == INT) {
-      rule_varDecList ();
+      list = rule_varDecList ();
     }
+
     if (yycc == ')') {
       next_token ();
+
     } else expecting ("')'");
   } else expecting ("'('");
+
+  return list;
 }
 
 /* instruction -> instructionBlock
@@ -152,71 +205,104 @@ void rule_paramList () {
  * instruction -> writeInstruction
  * instruction -> voidInstruction
  */
-void rule_instruction () {
-  if        (yycc == VAR_ID) { rule_setInstruction ();
-  } else if (yycc == FUN_ID) { rule_callInstruction ();
-  } else if (yycc == IF)     { rule_ifInstruction ();
-  } else if (yycc == WHILE)  { rule_whileInstruction ();
-  } else if (yycc == RETURN) { rule_returnInstruction ();
-  } else if (yycc == WRITE)  { rule_writeInstruction ();
-  } else if (yycc == ';')    { rule_voidInstruction ();
-  } else if (yycc == '{')    { rule_instructionBlock ();
+Node * rule_instruction () {
+  if (yycc == VAR_ID) {
+    return rule_setInstruction ();
+
+  } else if (yycc == FUN_ID) {
+    return rule_callInstruction ();
+
+  } else if (yycc == IF)     {
+    return rule_ifInstruction ();
+
+  } else if (yycc == WHILE)  {
+    return rule_whileInstruction ();
+
+  } else if (yycc == RETURN) {
+    return rule_returnInstruction ();
+
+  } else if (yycc == WRITE)  {
+    return rule_writeInstruction ();
+
+  } else if (yycc == ';')    {
+    return rule_voidInstruction ();
+
+  } else if (yycc == '{')    {
+    return rule_instructionBlock ();
+
   } else expecting ("instruction");
+  return NULL;
 }
 
 /* instructionBlock -> '{' instructionList '}'
  */
-void rule_instructionBlock () {
+Node * rule_instructionBlock () {
+  Node *list = NULL;
+
   if (yycc == '{') {
     next_token ();
-    rule_instructionList ();
+    list = rule_instructionList ();
 
     if (yycc == '}') {
       next_token ();
 
     } else expecting ("'}");
   } else expecting ("'{'");
+
+  return list;
 }
 
 /* instructionList -> instruction instructionList
  * instructionList -> void
  */
-void rule_instructionList () {
+Node * rule_instructionList () {
+  Node *head = NULL, *tail = NULL;
+
   if (yycc == VAR_ID || yycc == FUN_ID || yycc == '{'    || yycc == ';' ||
       yycc == IF     || yycc == WHILE  || yycc == RETURN || yycc == WRITE ) {
-    rule_instruction ();
+    head = rule_instruction ();
 
     if (yycc == VAR_ID || yycc == FUN_ID || yycc == '{'    || yycc == ';' ||
         yycc == IF     || yycc == WHILE  || yycc == RETURN || yycc == WRITE ) {
-      rule_instructionList ();
+      tail = rule_instructionList ();
+      Node_lastSibling(head)->next = tail;
     }
 
-  } else if (yycc == '}') return;
-  else expecting ("'}'");
+  }
+  if (yycc != '}') expecting ("'}'");
+
+  return Node_new (N_INST_LIST, NULL, NULL, head);
 }
 
 /* callInstruction -> funCall ';'
  */
-void rule_callInstruction () {
+Node * rule_callInstruction () {
+  Node *call = NULL;
+
   if (yycc == FUN_ID) {
-    rule_funCall ();
+    call = rule_funCall ();
 
     if (yycc == ';') {
       next_token ();
 
     } else expecting ("';'");
   } else expecting ("function identifier");
+
+  return call;
 }
 
 /* setInstruction -> variable '=' expression ';'
  */
-void rule_setInstruction () {
+Node * rule_setInstruction () {
+  Node *var = NULL, *expr = NULL;
+
   if (yycc == VAR_ID) {
-    rule_variable ();
+    var = rule_variable ();
 
     if (yycc == '=') {
       next_token ();
-      rule_expression ();
+      expr = rule_expression ();
+      var->next = expr;
 
       if (yycc == ';') {
         next_token ();
@@ -224,18 +310,22 @@ void rule_setInstruction () {
       } else expecting ("';'");
     } else expecting ("'='");
   } else expecting ("variable identifier");
+
+  return Node_new (N_SET_INST, NULL, NULL, var);
 }
 
 /* ifInstruction -> IF expression THEN instruction ELSE instruction
  * ifInstruction -> IF expression THEN instruction
  */
-void rule_ifInstruction () {
+Node * rule_ifInstruction () {
+  Node *expr = NULL, *then_inst = NULL, *else_inst = NULL;
+
   if (yycc == IF) {
     next_token ();
 
     if (yycc == '('  || yycc == NUMBER || yycc == VAR_ID ||
         yycc == READ || yycc == FUN_ID) {
-      rule_expression ();
+      expr = rule_expression ();
 
       if (yycc == THEN) {
         next_token ();
@@ -243,7 +333,8 @@ void rule_ifInstruction () {
         if (yycc == VAR_ID  || yycc == FUN_ID || yycc == '{'    ||
             yycc == ';'     || yycc == IF     || yycc == WHILE  ||
             yycc == RETURN  || yycc == WRITE ) {
-          rule_instruction ();
+          then_inst = rule_instruction ();
+          expr->next = then_inst;
 
           if (yycc == ELSE) {
             next_token ();
@@ -251,7 +342,8 @@ void rule_ifInstruction () {
             if (yycc == VAR_ID  || yycc == FUN_ID || yycc == '{'    ||
                 yycc == ';'     || yycc == IF     || yycc == WHILE  ||
                 yycc == RETURN || yycc == WRITE ) {
-              rule_instruction ();
+              else_inst = rule_instruction ();
+              then_inst->next = else_inst;
             } else expecting ("instruction");
           }
 
@@ -259,17 +351,21 @@ void rule_ifInstruction () {
       } else expecting ("keyword THEN");
     } else expecting ("expression");
   } else expecting ("keyword IF");
+
+  return Node_new (N_IF_INST, NULL, NULL, expr);
 }
 
 /* whileInstruction -> WHILE expression DO instruction
  */
-void rule_whileInstruction () {
+Node * rule_whileInstruction () {
+  Node *expr = NULL, *inst = NULL;
+
   if (yycc == WHILE) {
     next_token ();
 
     if (yycc == '('  || yycc == NUMBER || yycc == VAR_ID ||
         yycc == READ || yycc == FUN_ID) {
-      rule_expression ();
+      expr = rule_expression ();
 
       if (yycc == DO) {
         next_token ();
@@ -277,23 +373,28 @@ void rule_whileInstruction () {
         if (yycc == VAR_ID  || yycc == FUN_ID || yycc == '{'    ||
             yycc == ';'     || yycc == IF     || yycc == WHILE  ||
             yycc == RETURN || yycc == WRITE ) {
-          rule_instruction ();
+          inst = rule_instruction ();
+          Node_lastSibling (expr)->next = inst;
 
         } else expecting ("instruction");
       } else expecting ("keyword THEN");
     } else expecting ("expression");
   } else expecting ("keyword IF");
+
+  return Node_new (N_WHILE_INST, NULL, NULL, expr);
 }
 
 /* returnInstruction -> RETURN expression ';'
  */
-void rule_returnInstruction () {
+Node * rule_returnInstruction () {
+  Node *expr = NULL;
+
   if (yycc == RETURN) {
     next_token ();
 
     if (yycc == '(' || yycc == NUMBER || yycc == VAR_ID ||
         yycc == READ || yycc == FUN_ID) {
-      rule_expression ();
+      expr = rule_expression ();
 
       if (yycc == ';') {
         next_token ();
@@ -301,11 +402,15 @@ void rule_returnInstruction () {
       } else expecting ("';'");
     } else expecting ("expression");
   } else expecting ("keyword RETURN");
+
+  return Node_new (N_RETURN_INST, NULL, NULL, expr);
 }
 
 /* writeInstruction -> WRITE '(' expression ')' ';'
  */
-void rule_writeInstruction () {
+Node * rule_writeInstruction () {
+  Node *expr = NULL;
+
   if (yycc == WRITE) {
     next_token ();
 
@@ -314,7 +419,7 @@ void rule_writeInstruction () {
 
       if (yycc == '(' || yycc == NUMBER || yycc == VAR_ID ||
           yycc == READ || yycc == FUN_ID) {
-        rule_expression ();
+        expr = rule_expression ();
 
         if (yycc == ')') {
           next_token ();
@@ -327,52 +432,70 @@ void rule_writeInstruction () {
       } else expecting ("expression");
     } else expecting ("'('");
   } else expecting ("keyword RETURN");
+
+  return Node_new (N_WRITE_INST, NULL, NULL, expr);
 }
 
 /* voidInstruction -> ';'
  */
-void rule_voidInstruction () {
+Node * rule_voidInstruction () {
   if (yycc == ';') next_token (); else expecting ("';'");
+  return Node_new (N_VOID_INST, NULL, NULL, NULL);
 }
 
 /* expression -> conjunction OR expression
  * expression -> conjunction
  */
-void rule_expression () {
+Node * rule_expression () {
+  Node *conj = NULL, *expr = NULL;
+
   if (yycc == '('  || yycc == NUMBER || yycc == VAR_ID ||
       yycc == READ || yycc == FUN_ID) {
-    rule_conjunction ();
+    conj = rule_conjunction ();
 
     if (yycc == OR) {
       next_token ();
 
       if (yycc == '('  || yycc == NUMBER || yycc == VAR_ID ||
           yycc == READ || yycc == FUN_ID) {
-        rule_expression ();
+        expr = rule_expression ();
+        Node_lastSibling (conj)->next = expr;
       } else expecting ("expression after OR");
     }
 
   } else expecting ("conjunction");
+
+  if (expr != NULL) {
+    return Node_new (N_OP_EXP, Value_int (OR), NULL, conj);
+  }
+  return conj;
 }
 
 /* conjunction -> comparison AND conjunction
  * conjunction -> comparison
  */
-void rule_conjunction () {
+Node * rule_conjunction () {
+  Node *comp = NULL, *conj = NULL;
+
   if (yycc == '(' || yycc == NUMBER || yycc == VAR_ID ||
       yycc == READ || yycc == FUN_ID) {
-    rule_comparison ();
+    comp = rule_comparison ();
 
     if (yycc == AND) {
       next_token ();
 
       if (yycc == '(' || yycc == NUMBER || yycc == VAR_ID ||
           yycc == READ || yycc == FUN_ID) {
-        rule_conjunction ();
+        conj = rule_conjunction ();
+        Node_lastSibling (comp)->next = conj;
       } else expecting ("expression after AND");
     }
-
   } else expecting ("comparison");
+
+  if (conj != NULL) {
+    return Node_new (N_OP_EXP, Value_int (AND), NULL, comp);
+  }
+  return comp;
 }
 
 /* comparison -> arithmeticExpr EQ arithmeticExpr
@@ -381,55 +504,83 @@ void rule_conjunction () {
  * comparison -> arithmeticExpr LE arithmeticExpr
  * comparison -> arithmeticExpr
  */
-void rule_comparison () {
+Node * rule_comparison () {
+  Node  *expr1 = NULL, *expr2 = NULL;
+  Value *op = NULL;
+
   if (yycc == '('  || yycc == NUMBER || yycc == VAR_ID ||
       yycc == READ || yycc == FUN_ID) {
-    rule_arithmeticExpr ();
+    expr1= rule_arithmeticExpr ();
 
     if (yycc == EQ || yycc == NEQ || yycc == '<' || yycc == LE) {
+      op = Value_int ((int) yycc);
       next_token ();
 
       if (yycc == '('  || yycc == NUMBER || yycc == VAR_ID ||
           yycc == READ || yycc == FUN_ID) {
-        rule_arithmeticExpr ();
+        expr2 = rule_arithmeticExpr ();
+        Node_lastSibling (expr1)->next = expr2;
       } else expecting ("arithmetic expression");
     }
 
   } else expecting ("arithmetic expression");
+
+  if (expr2 != NULL) {
+    return Node_new (N_OP_EXP, op, NULL, expr1);
+  }
+  return expr1;
 }
 
 /* arithmeticExpr -> term '+' arithmeticExpr
  * arithmeticExpr -> term '-' arithmeticExpr
  * arithmeticExpr -> term
  */
-void rule_arithmeticExpr () {
+Node * rule_arithmeticExpr () {
+  Node  *term = NULL, *expr = NULL;
+  Value *op = NULL;
+
   if (yycc == '('  || yycc == NUMBER || yycc == VAR_ID ||
       yycc == READ || yycc == FUN_ID) {
-    rule_term ();
+    term = rule_term ();
 
     if (yycc == '+' || yycc == '-') {
+      op = Value_int ((int) yycc);
       next_token ();
-      rule_arithmeticExpr ();
+      expr = rule_arithmeticExpr ();
+      Node_lastSibling (term)->next = expr;
     }
-
   } else expecting ("term");
+
+  if (expr != NULL) {
+    return Node_new (N_OP_EXP, op, NULL, term);
+  }
+  return term;
 }
 
 /* term -> factor '/' term
  * term -> factor '*' term
  * term -> factor
  */
-void rule_term () {
+Node * rule_term () {
+  Node  *factor = NULL, *term = NULL;
+  Value *op = NULL;
+
   if (yycc == '('  || yycc == NUMBER || yycc == VAR_ID ||
       yycc == READ || yycc == FUN_ID) {
-    rule_factor ();
+    factor = rule_factor ();
 
     if (yycc == '/' || yycc == '*') {
+      op = Value_int ((int) yycc);
       next_token ();
-      rule_term ();
+      term =rule_term ();
+      Node_lastSibling (factor)->next = term;
     }
-
   } else expecting ("factor");
+
+  if (term != NULL) {
+    return Node_new (N_OP_EXP, op, NULL, factor);
+  }
+  return factor;
 }
 
 /* factor -> '(' expression ')'
@@ -438,19 +589,24 @@ void rule_term () {
  * factor -> variable
  * factor -> READ '(' ')'
  */
-void rule_factor () {
+Node * rule_factor () {
+  Node  *out = NULL;
+  Value *val = NULL;
+
   if (yycc == NUMBER) {
+    val = Value_int (atoi (yytext));
     next_token ();
+    return Node_new (N_INT_EXP, val, NULL, NULL);
 
   } else if (yycc == VAR_ID) {
-    rule_variable ();
+    out = rule_variable ();
 
   } else if (yycc == FUN_ID) {
-    rule_funCall ();
+    out = rule_funCall ();
 
   } else if (yycc == '(') {
     next_token ();
-    rule_expression ();
+    out = rule_expression ();
 
     if (yycc == ')') {
       next_token ();
@@ -468,20 +624,27 @@ void rule_factor () {
 
       } else expecting ("')'");
     } else expecting ("'('");
+    return Node_new (N_READ_EXP, NULL, NULL, NULL);
 
   } else expecting ("factor");
+
+  return out;
 }
 
 /* variable -> VAR_ID '[' expression ']'
  * variable -> VAR_ID
  */
-void rule_variable () {
+Node * rule_variable () {
+  Node  *index = NULL;
+  Value *name = NULL;
+
   if (yycc == VAR_ID) {
+    name = Value_str (yytext);
     next_token ();
 
     if (yycc == '[') {
       next_token ();
-      rule_expression ();
+      index = rule_expression ();
 
       if (yycc == ']') {
         next_token ();
@@ -489,63 +652,87 @@ void rule_variable () {
     }
 
   } else expecting ("variable identifier");
+
+  return Node_new (N_VAR, name, index, NULL);
 }
 
 /* funCall -> FUN_ID arguments
  */
-void rule_funCall () {
+Node * rule_funCall () {
+  Node  *args = NULL;
+  Value *name = NULL;
   if (yycc == FUN_ID) {
+    name = Value_str (yytext);
     next_token ();
-    rule_arguments ();
+    args = rule_arguments ();
 
   } else expecting ("function identifier");
+
+  return Node_new (N_CALL, name, NULL, args);
 }
 
 /* arguments -> '(' exprList ')'
  */
-void rule_arguments () {
+Node * rule_arguments () {
+  Node *list = NULL;
+
   if (yycc == '(') {
     next_token ();
-    rule_exprList ();
+    list = rule_exprList ();
 
     if (yycc == ')') {
       next_token ();
+
     } else expecting ("')'");
   } else expecting ("'('");
+
+  return list;
 }
 
 /* exprList -> expression exprList2
  * exprList -> void
  */
-void rule_exprList () {
+Node * rule_exprList () {
+  Node *head = NULL, *tail = NULL;
+
   if (yycc == '('  || yycc == NUMBER || yycc == VAR_ID ||
       yycc == READ || yycc == FUN_ID) {
-    rule_expression ();
+    head = rule_expression ();
 
     if (yycc == ',') {
-      rule_exprList2 ();
+      tail = rule_exprList2 ();
+      Node_lastSibling(head)->next = tail;
+
     }
+    return head;
   }
+  return NULL;
 }
 
 /* exprList2 -> ',' expression exprList2
  * exprList2 -> void
  */
-void rule_exprList2 () {
+Node * rule_exprList2 () {
+  Node *head = NULL, *tail = NULL;
+
   if (yycc == ',') {
     next_token ();
 
     if (yycc == '('  || yycc == NUMBER || yycc == VAR_ID ||
       yycc == READ || yycc == FUN_ID) {
-      rule_expression ();
+      head = rule_expression ();
 
       if (yycc == '('  || yycc == NUMBER || yycc == VAR_ID ||
           yycc == READ || yycc == FUN_ID) {
-        rule_exprList2 ();
+        tail = rule_exprList2 ();
+        Node_lastSibling(head)->next = tail;
       }
+      return head;
 
     } else expecting ("expression");
-  } else expecting ("','");
+  }
+
+  return NULL;
 }
 
 /* Utilitaires */
@@ -566,5 +753,5 @@ void expecting (char *expected) {
 
 void next_token () {
   yycc = yylex ();
-  printf ("%3d -> %s\n", yycc, yytext);
+  /* printf ("%3d -> %s\n", yycc, yytext); */
 }

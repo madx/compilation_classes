@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "lexer.h"
+#include "ast.h"
 #include "parser.h"
 
 extern char  yytext[];
@@ -10,6 +11,8 @@ extern char *yyfile;
 extern int   yycc, yyline;
 
 int main (int argc, char *argv[]) {
+  Node *ast;
+
   yyfile = argv[1];
   yyin   = fopen (argv[1], "r");
   if (NULL == yyin) {
@@ -18,7 +21,10 @@ int main (int argc, char *argv[]) {
   }
 
   next_token ();
-  rule_program ();
+  ast = rule_program ();
+
+  Node_toDot   (ast);
+  Node_destroy (ast);
 
   fclose (yyin);
 
