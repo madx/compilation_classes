@@ -5,6 +5,7 @@
 #include "ast.h"
 #include "parser.h"
 
+extern char  *node_names[];
 extern char  yytext[128];
 extern FILE *yyin;
 extern int   yyline;
@@ -302,7 +303,7 @@ Node * rule_setInstruction () {
     if (yycc == '=') {
       next_token ();
       expr = rule_expression ();
-      var->next = expr;
+      Node_lastSibling (var)->next = expr;
 
       if (yycc == ';') {
         next_token ();
@@ -572,7 +573,7 @@ Node * rule_term () {
     if (yycc == '/' || yycc == '*') {
       op = Value_int ((int) yycc);
       next_token ();
-      term =rule_term ();
+      term = rule_term ();
       Node_lastSibling (factor)->next = term;
     }
   } else expecting ("factor");
@@ -636,7 +637,7 @@ Node * rule_factor () {
  */
 Node * rule_variable () {
   Node  *index = NULL;
-  Value *name = NULL;
+  Value *name  = NULL;
 
   if (yycc == VAR_ID) {
     name = Value_str (yytext);

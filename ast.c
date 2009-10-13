@@ -42,7 +42,7 @@ Node * Node_new (NodeType type, Value *value, Node *next, Node *child) {
   Node *n;
 
   n = malloc (sizeof (*n));
-  assert(NULL != n);
+  assert (NULL != n);
 
   n->type  = type;
   n->value = value;
