@@ -96,10 +96,14 @@ void Node_toDotRecurse (Node *parent, Node *n) {
     } else if (n->value != NULL) {
       switch (n->value->type) {
         case VT_STRING:
-          printf ("  n%p [label=\"%s\"];\n", (void*) n, n->value->as.string);
+          printf ("  n%p [label=\"%s (%s)\"];\n", (void*) n,
+            n->value->as.string, node_names[n->type]
+          );
           break;
         case VT_INT:
-          printf ("  n%p [label=\"%d\"];\n", (void*) n, n->value->as.number);
+          printf ("  n%p [label=\"%d (%s)\"];\n", (void*) n,
+            n->value->as.number, node_names[n->type]
+          );
           break;
       }
     } else {
