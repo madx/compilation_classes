@@ -41,7 +41,7 @@ int char_type (const char c);
 #define CT_WHITE  0 /* ' ', \t, \n, \r */
 #define CT_ALPHA  1 /* a-zA-Z_ */
 #define CT_DIGIT  2 /* 0-9 */
-#define CT_SPUNC  3 /* ( ) { } ; . , + - * / % */
+#define CT_SPUNC  3 /* ( ) [ ] { } ; . , + - * / % */
 #define CT_DPUNC  4 /* =[=] <[=] >[=] */
 #define CT_VARID  5 /* $ */
 
