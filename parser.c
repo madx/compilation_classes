@@ -10,7 +10,6 @@ extern char  yytext[128];
 extern FILE *yyin;
 extern int   yyline;
        int   yycc;
-       int   depth = 0;
        char *yyfile;
 
 /* program -> funDefList '.'
@@ -118,6 +117,9 @@ Node * rule_varDec () {
 
     } else expecting ("variable identifier");
   } else expecting ("keyword ENTIER");
+
+  if (index != NULL)
+    return Node_new (N_ARR_DEC, name, index, NULL);
 
   return Node_new (N_VAR_DEC, name, index, NULL);
 }

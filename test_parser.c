@@ -4,11 +4,13 @@
 #include "lexer.h"
 #include "ast.h"
 #include "parser.h"
+#include "symbol.h"
 
 extern char  yytext[];
 extern FILE *yyin;
 extern char *yyfile;
 extern int   yycc, yyline;
+extern SymTable *yysym;
 
 int main (int argc, char *argv[]) {
   Node *ast;
@@ -23,9 +25,18 @@ int main (int argc, char *argv[]) {
   next_token ();
   ast = rule_program ();
 
-  Node_toDot   (ast);
-  Node_destroy (ast);
+  /* Node_toDot (ast); */
 
+  yysym = SymTable_new (
+    Node_countType (ast, N_VAR_DEC) +
+    Node_countType (ast, N_FUN_DEC) +
+    Node_countType (ast, N_ARR_DEC)
+  );
+
+  SymTable_print   (yysym);
+  SymTable_destroy (yysym);
+
+  Node_destroy (ast);
   fclose (yyin);
 
   return 0;

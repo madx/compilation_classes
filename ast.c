@@ -8,6 +8,7 @@
 #ifdef __STRICT_ANSI__
 char *strdup (const char *str) {
     char *dup;
+
     dup = malloc ( (strlen (str) + 1) * sizeof (*dup));
     assert (dup != NULL);
     strcpy (dup, str);
@@ -78,6 +79,14 @@ Node * Node_lastSibling (Node *n) {
   while (tmp->next != NULL) tmp = tmp->next;
 
   return tmp;
+}
+
+int Node_countType (Node *n, NodeType type) {
+  int sum = 0;
+  if (n->child != NULL) sum += Node_countType (n->child, type);
+  if (n->next != NULL)  sum += Node_countType (n->next, type);
+
+  return (n->type == type) ? 1 + sum : 0 + sum;
 }
 
 void Node_toDotRecurse (Node *parent, Node *n) {

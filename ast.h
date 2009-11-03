@@ -29,6 +29,7 @@ void   Node_destroy (Node *n);
 void   Node_toDot   (Node *n);
 void   Node_toDotRecurse (Node *parent, Node *n);
 Node * Node_lastSibling  (Node *n);
+int    Node_countType    (Node *n, NodeType type);
 
 Value * Value_int (int number);
 Value * Value_str (char *string);
