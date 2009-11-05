@@ -119,7 +119,7 @@ Node * rule_varDec () {
   } else expecting ("keyword ENTIER");
 
   if (index != NULL)
-    return Node_new (N_ARR_DEC, name, index, NULL);
+    return Node_new (N_ARR_DEC, name, NULL, index);
 
   return Node_new (N_VAR_DEC, name, index, NULL);
 }
@@ -158,7 +158,6 @@ Node * rule_funDef () {
 
       if (yycc == INT) {
         variables = rule_varDecList ();
-        Node_lastSibling(params)->next = variables;
 
         if (yycc == ';') {
           next_token ();
@@ -167,12 +166,16 @@ Node * rule_funDef () {
 
       if (yycc == '{') {
         body = rule_instructionBlock ();
-        if (NULL != variables) { Node_lastSibling (variables)->next = body; }
-        else                   { Node_lastSibling (params)->next    = body; }
 
       } else expecting ("'{'");
     } else expecting ("'('");
   } else expecting ("function identifier");
+
+  if (NULL == params)    params    = Node_new (N_FAKE_NODE, NULL, NULL, NULL);
+  if (NULL == variables) variables = Node_new (N_FAKE_NODE, NULL, NULL, NULL);
+
+  Node_lastSibling (params)->next    = variables;
+  Node_lastSibling (variables)->next = body;
 
   return Node_new (N_FUN_DEC, name, NULL, params);
 }
@@ -656,7 +659,7 @@ Node * rule_variable () {
 
   } else expecting ("variable identifier");
 
-  return Node_new (N_VAR, name, index, NULL);
+  return Node_new (N_VAR, name, NULL, index);
 }
 
 /* funCall -> FUN_ID arguments

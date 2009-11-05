@@ -22,7 +22,7 @@ static char *node_names[] = {
   "op_exp",    "int_exp",    "call_exp",   "read_exp",    "call_inst",
   "set_inst",  "if_inst",    "while_inst", "return_inst", "write_inst",
   "void_inst", "block_inst", "var",        "call",        "exp_list",
-  "inst_list", "dec_list"
+  "inst_list", "dec_list",   "fake_node"
 };
 
 static char *op_str (int op) {
