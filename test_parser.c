@@ -33,6 +33,8 @@ int main (int argc, char *argv[]) {
     Node_countType (ast, N_ARR_DEC)
   );
 
+  SymTable_build (yysym, ast);
+
   SymTable_print   (yysym);
   SymTable_destroy (yysym);
 

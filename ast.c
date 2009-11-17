@@ -73,6 +73,9 @@ void Node_toDot (Node *n) {
   printf ("}\n");
 }
 
+void Node_toLASM (Node *n) {
+}
+
 Node * Node_lastSibling (Node *n) {
   Node *tmp = n;
 

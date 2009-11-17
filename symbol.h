@@ -9,8 +9,9 @@ struct symbol_t_ {
   int   address;
   int   data;
   bool  used;
-  enum { SC_LOCAL, SC_GLOBAL, SC_ARG      } scope;
-  enum { ST_INT,   ST_ARRAY,  ST_FUNCTION } type;
+  enum { SC_GLOBAL, SC_LOCAL, SC_ARG } scope;
+  enum { ST_FUN, ST_ARR, ST_INT } type;
+  Symbol *context;
 };
 
 struct sym_table_t_ {
@@ -20,10 +21,12 @@ struct sym_table_t_ {
 
 SymTable * SymTable_new     (int size);
 void       SymTable_destroy (SymTable *table);
-SymTable * SymTable_build   (Node *root);
-void       SymTable_print (SymTable *st);
+void       SymTable_build   (SymTable *st, Node *root);
+void       SymTable_print   (SymTable *st);
+void       SymTable_add     (SymTable *st, Symbol *s);
 
-Symbol * Symbol_new (char *name, int address, int scope, int type, int data);
+Symbol * Symbol_new (char *name, int scope, int type, Symbol *context);
+Symbol * Symbol_dup (Symbol *s);
 void     Symbol_destroy (Symbol *s);
 void     Symbol_print (Symbol *s);
 
