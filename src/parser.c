@@ -6,7 +6,7 @@
 #include "parser.h"
 
 extern char  *node_names[];
-extern char  yytext[128];
+extern char  yytext[];
 extern FILE *yyin;
 extern int   yyline;
        int   yycc;

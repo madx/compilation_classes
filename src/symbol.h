@@ -16,7 +16,7 @@ struct symbol_t_ {
 
 struct sym_table_t_ {
   Symbol **symbols;
-  int base, top, size;
+  int      size, count;
 };
 
 SymTable * SymTable_new     (int size);
@@ -24,16 +24,11 @@ void       SymTable_destroy (SymTable *table);
 void       SymTable_build   (SymTable *st, Node *root);
 void       SymTable_print   (SymTable *st);
 void       SymTable_add     (SymTable *st, Symbol *s);
+bool       SymTable_exists  (SymTable *st, char *name, Symbol *context);
+bool       SymTable_hasFailed(bool set);
 
 Symbol * Symbol_new (char *name, int scope, int type, Symbol *context);
-Symbol * Symbol_dup (Symbol *s);
 void     Symbol_destroy (Symbol *s);
 void     Symbol_print (Symbol *s);
-
-/* void entreeFonction(void); */
-/* void sortieFonction(void); */
-/* int rechercheExecutable(char *identif); */
-/* int rechercheDeclarative(char *identif); */
-/* void affiche_table(void); */
 
 #endif

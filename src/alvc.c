@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+#include <libgen.h>
 #include "lexer.h"
 #include "ast.h"
 #include "parser.h"
@@ -10,41 +11,54 @@
 
 #define arg(s) (!strcmp(s, argv[i]))
 
-/* tlc -- le Tiny L Compiler
- *  -c: produit un fichier .lasm
- *  -x: exécute avec tlvm
- *  -o <fichier>: écrit le code dans <fichier>
- *  FICHIER: le fichier à compiler
+/* alvc -- le Awesome L Virtual machine and Compiler
+ * usage: alvc <mode> <input> [output]
+ *   mode: peut être soit -c (compiler), -x (exécuter),
+ *         -b (exécuter du bytecode), ou -h (aide)
+ *   input: fichier d'entrée
+ *   output: fichier de sortie, par défaut /dev/stdout
  */
 
+extern char* yyfile;
+
+static char* progname;
+
 int main (int argc, char* argv[]) {
-  int i;
+  int i = 1;
   struct {
-    bool assemble;
-    bool execute;
+    enum { COMPILE, EXEC_PROGRAM, EXEC_BYTECODE } mode;
     char *out, *in;
-  } options = { false, false, "/dev/stdout", NULL };
+  } options = { COMPILE, "/dev/stdout", NULL };
 
-  for (i = 1; i < argc; i++) {
-    if      (arg("-c")) options.assemble = true;
-    else if (arg("-x")) options.execute  = true;
-    else if (arg("-o"))
-      if (NULL != argv[i+1])
-        if (argv[i+1][0] == '-')
-          error ("invalid argument for -o");
-        else
-          options.out = argv[i++];
-      else error ("missing value for -o");
-    else options.in = argv[i];
+  progname = basename (argv[0]);
+
+  if (!(argc == 2 && arg("-h")) && argc < 3)
+    fatal ("not enough arguments (run with -h)");
+
+  if (arg("-h")) {
+    puts (
+      "alvc -- the Awesome L Virtual machine and Compiler\n"
+      "  usage: [1malvc[0m [4mmode[0m [4minput[0m [output]\n"
+      "    mode:   may be either -c (compile), -x (execute),\n"
+      "            -b (execute bytecode), ou -h (help)\n"
+      "    input:  input file in L or in bytecode\n"
+      "    output: output file, defaults to /dev/stdout (only for -c)"
+    );
+    exit (EXIT_SUCCESS);
   }
+  else if (arg("-c")) options.mode = COMPILE;
+  else if (arg("-x")) options.mode = EXEC_PROGRAM;
+  else if (arg("-b")) options.mode = EXEC_BYTECODE;
+  else                fatal ("unknwon mode");
 
-  if (NULL == options.in)
-    error ("no input file");
+  options.in = argv[++i];
+
+  if (argv[++i]) options.out = argv[i];
 
   exit (EXIT_SUCCESS);
 }
 
-void error (char *msg) {
-  fprintf(stderr, "tlc: %s\n", msg);
+void fatal (char *msg) {
+  fprintf(stderr, "fatal: %s [%s]\n", msg, progname);
   exit (EXIT_FAILURE);
 }

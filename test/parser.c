@@ -16,17 +16,19 @@ extern SymTable *yysym;
 
 int main (int argc, char *argv[]) {
   Node *ast;
-  enum { AST, SYM } mode = AST ;
+  enum { DOT, SYM, C } mode = DOT ;
   int i;
 
   for(i = 1; i < argc; i++) {
-    if(opt("-a")) mode = AST;
-    else if(opt("-s"))  mode = SYM;
+    if      (opt("-d")) mode = DOT;
+    else if (opt("-s")) mode = SYM;
+    else if (opt("-c")) mode = C;
     else {
       yyfile = argv[i];
-      yyin = fopen (argv[i], "r");
     }
   }
+
+  yyin = fopen (yyfile, "r");
   if (NULL == yyin) {
     fprintf (stderr, "impossible d'ouvrir le fichier %s\n", argv[1]);
     exit (1);
@@ -36,9 +38,8 @@ int main (int argc, char *argv[]) {
   ast = rule_program ();
 
   switch (mode) {
-  case AST:
-    Node_toDot (ast);
-    break;
+  case DOT: AST_toDot (ast); break;
+  case C: AST_toC   (ast); break;
   case SYM:
     yysym = SymTable_new (
       Node_countType (ast, N_VAR_DEC) +

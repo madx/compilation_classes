@@ -18,7 +18,7 @@ Symbol * Symbol_new (char *name, int scope, int type, Symbol *context) {
   s->name    = name;
   s->scope   = scope;
   s->type    = type;
-  s->context = Symbol_dup (context);
+  s->context = context;
   s->address = 0;
   s->data    = 0;
   s->used    = false;
@@ -26,34 +26,17 @@ Symbol * Symbol_new (char *name, int scope, int type, Symbol *context) {
   return s;
 }
 
-Symbol * Symbol_dup (Symbol *s) {
-  Symbol *out;
-
-  if (NULL == s) return NULL;
-
-  out = malloc (sizeof(*out));
-  assert (NULL != out);
-
-  out->name    = s->name;
-  out->scope   = s->scope;
-  out->type    = s->type;
-  out->context = s->context;
-  out->address = s->address;
-  out->data    = s->data;
-  out->used    = s->used;
-
-  return out;
-}
-
 void Symbol_destroy (Symbol *s) {
-  if (NULL != s->context) Symbol_destroy (s->context);
   free(s);
 }
 
 void Symbol_print (Symbol *s) {
-  printf ("%s@%s scope: %d type: %d\n",
-    s->name, ((s->context != NULL) ? s->context->name : ""),
-    s->scope, s->type
+  printf ("id: %-16s context: %-16s %9p scope: %-8s type: %6s [%p]\n",
+    s->name, ((s->context != NULL) ? s->context->name : "*"),
+    (void *) s->context,
+    ((s->scope == SC_ARG) ? "a" : (s->scope == SC_LOCAL) ? "l" : "g"),
+    ((s->type == ST_FUN) ? "func" : (s->type == ST_ARR) ? "array" : "int"),
+    (void *) s
   );
 }
 
@@ -66,8 +49,8 @@ SymTable * SymTable_new (int size) {
   st->symbols = malloc (size * sizeof (*st->symbols));
   assert (NULL != st->symbols);
 
-  st->size = size;
-  st->base = st->top = 0;
+  st->size  = size;
+  st->count = 0;
 
   return st;
 }
@@ -133,6 +116,15 @@ void SymTable_build (SymTable *st, Node *n) {
       }
       break;
 
+    case N_CALL: case N_VAR:
+      if (!SymTable_exists (st, n->value->as.string, context) &&
+          !SymTable_exists (st, n->value->as.string, NULL)) {
+        fprintf (stderr, "error: '%s' [%s] undeclared\n", n->value->as.string,
+            Node_name (n));
+        SymTable_hasFailed (true);
+      }
+      break;
+
     default:
       SymTable_build (st, n->child);
       SymTable_build (st, n->next);
@@ -150,9 +142,38 @@ void SymTable_destroy (SymTable *st) {
   free (st);
 }
 
+bool SymTable_hasFailed(bool set) {
+  static bool fail = false;
+  fail = set;
+  return fail;
+}
+
 void SymTable_add (SymTable *st, Symbol *s) {
-  st->symbols[st->top] = s;
-  st->top++;
+  if (SymTable_exists (st, s->name, s->context)) {
+    fprintf (stderr, "error: '%s' is already declared in %s\n",
+        s->name, (NULL != s->context) ? s->context->name : "*");
+    SymTable_hasFailed (true);
+  }
+
+  if (st->count != st->size) {
+    st->symbols[st->count] = s;
+    st->count++;
+  } else {
+    fprintf (stderr, "fatal: symbol table is full\n");
+    exit (EXIT_FAILURE);
+  }
+}
+
+bool SymTable_exists (SymTable *st, char *name, Symbol *context) {
+  int i;
+
+  for (i = 0; i < st->count; i++) {
+    if (st->symbols[i]->context == context &&
+        !strcmp(st->symbols[i]->name, name))
+      return true;
+  }
+
+  return false;
 }
 
 void SymTable_print (SymTable *st) {
@@ -160,6 +181,6 @@ void SymTable_print (SymTable *st) {
 
   printf ("Table (size: %d)\n", st->size);
 
-  for (i = 0; i < st->top; i++)
+  for (i = 0; i < st->size; i++)
     if (st->symbols[i] != NULL) Symbol_print (st->symbols[i]);
-}
+ }
