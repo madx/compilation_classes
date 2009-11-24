@@ -66,14 +66,48 @@ void Node_destroy (Node *n) {
   }
 }
 
-void Node_toDot (Node *n) {
+char * Node_name (Node *n) {
+  return node_names[n->type];
+}
+
+void AST_toDot (Node *n) {
   printf ("digraph {\n");
-  printf ("  n%p [label=\"%s\"];\n", (void *) n, node_names[n->type]);
-  Node_toDotRecurse (n, n->child);
+  printf ("  n%p [label=\"%s\"];\n", (void *) n, Node_name (n));
+  AST_toDot_recurse (n, n->child);
   printf ("}\n");
 }
 
-void Node_toLASM (Node *n) {
+void AST_toDot_recurse (Node *parent, Node *n) {
+  if (n != NULL) {
+    if (n->type == N_OP_EXP) {
+      printf ("  n%p [label=\"%s\"];\n", (void*) n, op_str (n->value->as.number));
+    } else if (n->value != NULL) {
+      switch (n->value->type) {
+        case VT_STRING:
+          printf ("  n%p [label=\"%s (%s)\"];\n", (void*) n,
+            n->value->as.string, Node_name (n)
+          );
+          break;
+        case VT_INT:
+          printf ("  n%p [label=\"%d (%s)\"];\n", (void*) n,
+            n->value->as.number, Node_name (n)
+          );
+          break;
+      }
+    } else {
+      printf ("  n%p [label=\"%s\"];\n", (void*) n, Node_name (n));
+    }
+    printf ("  n%p -> n%p;\n", (void *) parent,  (void *) n);
+    if (n->next  != NULL) AST_toDot_recurse (parent, n->next);
+    if (n->child != NULL) AST_toDot_recurse (n, n->child);
+  }
+}
+
+void AST_toC (Node *n) {
+
+}
+
+void AST_toC_recurse (Node *parent, Node *n) {
 }
 
 Node * Node_lastSibling (Node *n) {
@@ -90,32 +124,6 @@ int Node_countType (Node *n, NodeType type) {
   if (n->next != NULL)  sum += Node_countType (n->next, type);
 
   return (n->type == type) ? 1 + sum : 0 + sum;
-}
-
-void Node_toDotRecurse (Node *parent, Node *n) {
-  if (n != NULL) {
-    if (n->type == N_OP_EXP) {
-      printf ("  n%p [label=\"%s\"];\n", (void*) n, op_str (n->value->as.number));
-    } else if (n->value != NULL) {
-      switch (n->value->type) {
-        case VT_STRING:
-          printf ("  n%p [label=\"%s (%s)\"];\n", (void*) n,
-            n->value->as.string, node_names[n->type]
-          );
-          break;
-        case VT_INT:
-          printf ("  n%p [label=\"%d (%s)\"];\n", (void*) n,
-            n->value->as.number, node_names[n->type]
-          );
-          break;
-      }
-    } else {
-      printf ("  n%p [label=\"%s\"];\n", (void*) n, node_names[n->type]);
-    }
-    printf ("  n%p -> n%p;\n", (void *) parent,  (void *) n);
-    if (n->next  != NULL) Node_toDotRecurse (parent, n->next);
-    if (n->child != NULL) Node_toDotRecurse (n, n->child);
-  }
 }
 
 Value * Value_int (int number) {

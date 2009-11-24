@@ -62,7 +62,7 @@ int yylex () {
         strccat (yytext, c);
         while (EOF != (next = fgetc (yyin)))
           if (!scan_alpha_num (next)) break;
-        for (i = 0; i < 13; i++)
+        for (i = 0; i < 15; i++)
           if (!strcmp (keywords[i], yytext)) {
             return 300+i;
           }

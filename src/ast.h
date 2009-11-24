@@ -26,10 +26,14 @@ struct node_t_ {
 
 Node * Node_new     (NodeType type, Value *value, Node *next, Node *child);
 void   Node_destroy (Node *n);
-void   Node_toDot   (Node *n);
-void   Node_toDotRecurse (Node *parent, Node *n);
 Node * Node_lastSibling  (Node *n);
+char * Node_name         (Node *n);
 int    Node_countType    (Node *n, NodeType type);
+
+void   AST_toDot         (Node *n);
+void   AST_toDot_recurse (Node *parent, Node *n);
+void   AST_toC           (Node *n);
+void   AST_toC_recurse   (Node *parent, Node *n);
 
 Value * Value_int (int number);
 Value * Value_str (char *string);
