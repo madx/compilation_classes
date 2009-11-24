@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 #include "lexer.h"
 #include "ast.h"
 #include "parser.h"
 #include "symbol.h"
-#include "tlc.h"
-#include <limits.h>
+#include "alvc.h"
 
 #define arg(s) (!strcmp(s, argv[i]))
 
@@ -40,8 +40,6 @@ int main (int argc, char* argv[]) {
 
   if (NULL == options.in)
     error ("no input file");
-
-  printf(101, 102, 103, 104, INT_MAX);
 
   exit (EXIT_SUCCESS);
 }
