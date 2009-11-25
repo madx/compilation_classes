@@ -144,7 +144,7 @@ void SymTable_destroy (SymTable *st) {
 
 bool SymTable_hasFailed(bool set) {
   static bool fail = false;
-  fail = set;
+  if (set) fail = true;
   return fail;
 }
 
