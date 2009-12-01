@@ -26,6 +26,7 @@ void       SymTable_print   (SymTable *st);
 void       SymTable_add     (SymTable *st, Symbol *s);
 bool       SymTable_exists  (SymTable *st, char *name, Symbol *context);
 bool       SymTable_hasFailed(bool set);
+void       SymTable_warnUnused (SymTable *st);
 
 Symbol * Symbol_new (char *name, int scope, int type, Symbol *context);
 void     Symbol_destroy (Symbol *s);

@@ -31,12 +31,14 @@ void Symbol_destroy (Symbol *s) {
 }
 
 void Symbol_print (Symbol *s) {
-  printf ("id: %-16s context: %-16s %9p scope: %-8s type: %6s [%p]\n",
+  printf ("id: %-16s context: %-16s %9p scope: %-8s type: %-6s "
+          "used: %c data: %d [%p]\n",
     s->name, ((s->context != NULL) ? s->context->name : "*"),
     (void *) s->context,
     ((s->scope == SC_ARG) ? "a" : (s->scope == SC_LOCAL) ? "l" : "g"),
     ((s->type == ST_FUN) ? "func" : (s->type == ST_ARR) ? "array" : "int"),
-    (void *) s
+    ((s->used) ? 'y' : 'n'),
+    s->data, (void *) s
   );
 }
 
@@ -73,13 +75,14 @@ void SymTable_build (SymTable *st, Node *n) {
       SymTable_build (st, n->next);
       break;
 
-    case N_ARR_DEC:
-      SymTable_add (st,
-        Symbol_new (n->value->as.string, scope, ST_ARR, context)
-      );
+    case N_ARR_DEC: {
+      Symbol *arr = Symbol_new (n->value->as.string, scope, ST_ARR, context);
+      arr->data = n->child->value->as.number;
+      SymTable_add (st, arr);
       SymTable_build (st, n->child);
       SymTable_build (st, n->next);
       break;
+    }
 
     case N_FUN_DEC:
       tmp = Symbol_new (n->value->as.string, scope, ST_FUN, context);
@@ -116,8 +119,8 @@ void SymTable_build (SymTable *st, Node *n) {
       }
       break;
 
-    case N_CALL:
     case N_VAR:
+    case N_CALL:
       if (!SymTable_exists (st, n->value->as.string, context) &&
           !SymTable_exists (st, n->value->as.string, NULL)) {
         fprintf (stderr, "error: %s '%s' undeclared\n", Node_name (n),
