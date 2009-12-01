@@ -116,13 +116,16 @@ void SymTable_build (SymTable *st, Node *n) {
       }
       break;
 
-    case N_CALL: case N_VAR:
+    case N_CALL:
+    case N_VAR:
       if (!SymTable_exists (st, n->value->as.string, context) &&
           !SymTable_exists (st, n->value->as.string, NULL)) {
-        fprintf (stderr, "error: '%s' [%s] undeclared\n", n->value->as.string,
-            Node_name (n));
+        fprintf (stderr, "error: %s '%s' undeclared\n", Node_name (n),
+            n->value->as.string);
         SymTable_hasFailed (true);
       }
+      SymTable_build (st, n->child);
+      SymTable_build (st, n->next);
       break;
 
     default:
