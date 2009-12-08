@@ -20,8 +20,9 @@
 #define READ    314
 
 #define LE      320
-#define NEQ     321
-#define EQ      322
+#define GE      321
+#define NEQ     322
+#define EQ      323
 
 #define VAR_ID  330
 #define FUN_ID  331

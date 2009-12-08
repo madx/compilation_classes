@@ -30,7 +30,9 @@ static char *op_str (int op) {
     case EQ:  return "=="; break;
     case NEQ: return "!="; break;
     case LE:  return "<="; break;
+    case GE:  return ">="; break;
     case '<': return "<";  break;
+    case '>': return ">";  break;
     case '+': return "+";  break;
     case '-': return "-";  break;
     case '*': return "×";  break;

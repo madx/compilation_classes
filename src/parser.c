@@ -383,9 +383,9 @@ Node * rule_whileInstruction () {
           Node_lastSibling (expr)->next = inst;
 
         } else expecting ("instruction");
-      } else expecting ("keyword THEN");
+      } else expecting ("keyword DO");
     } else expecting ("expression");
-  } else expecting ("keyword IF");
+  } else expecting ("keyword WHILE");
 
   return Node_new (N_WHILE_INST, NULL, NULL, expr);
 }
@@ -504,10 +504,7 @@ Node * rule_conjunction () {
   return comp;
 }
 
-/* comparison -> arithmeticExpr EQ arithmeticExpr
- * comparison -> arithmeticExpr NEQ arithmeticExpr
- * comparison -> arithmeticExpr '<' arithmeticExpr
- * comparison -> arithmeticExpr LE arithmeticExpr
+/* comparison -> arithmeticExpr COMP_OP arithmeticExpr
  * comparison -> arithmeticExpr
  */
 Node * rule_comparison () {
@@ -516,9 +513,10 @@ Node * rule_comparison () {
 
   if (yycc == '('  || yycc == NUMBER || yycc == VAR_ID ||
       yycc == READ || yycc == FUN_ID) {
-    expr1= rule_arithmeticExpr ();
+    expr1 = rule_arithmeticExpr ();
 
-    if (yycc == EQ || yycc == NEQ || yycc == '<' || yycc == LE) {
+    if (yycc == EQ || yycc == NEQ || yycc == '<' || yycc == '>' ||
+        yycc == GE || yycc == LE) {
       op = Value_int ((int) yycc);
       next_token ();
 

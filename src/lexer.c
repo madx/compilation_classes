@@ -31,6 +31,7 @@ int yylex () {
           case '=': return scan_comp_op ('=', EQ);  break;
           case '!': return scan_comp_op ('!', NEQ); break;
           case '<': return scan_comp_op ('<', LE);  break;
+          case '>': return scan_comp_op ('>', GE);  break;
         }
         break;
 
