@@ -25,6 +25,7 @@ void       SymTable_build   (SymTable *st, Node *root);
 void       SymTable_print   (SymTable *st);
 void       SymTable_add     (SymTable *st, Symbol *s);
 bool       SymTable_exists  (SymTable *st, char *name, Symbol *context);
+Symbol *   SymTable_find    (SymTable *st, char *name, Symbol *context);
 bool       SymTable_hasFailed(bool set);
 void       SymTable_warnUnused (SymTable *st);
 

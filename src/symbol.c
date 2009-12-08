@@ -32,13 +32,13 @@ void Symbol_destroy (Symbol *s) {
 
 void Symbol_print (Symbol *s) {
   printf ("id: %-16s context: %-16s %9p scope: %-8s type: %-6s "
-          "used: %c data: %d [%p]\n",
+          "used: %c data: %d address: %d [%p]\n",
     s->name, ((s->context != NULL) ? s->context->name : "*"),
     (void *) s->context,
     ((s->scope == SC_ARG) ? "a" : (s->scope == SC_LOCAL) ? "l" : "g"),
     ((s->type == ST_FUN) ? "func" : (s->type == ST_ARR) ? "array" : "int"),
     ((s->used) ? 'y' : 'n'),
-    s->data, (void *) s
+    s->data, s->address, (void *) s
   );
 }
 
@@ -171,15 +171,19 @@ void SymTable_add (SymTable *st, Symbol *s) {
 }
 
 bool SymTable_exists (SymTable *st, char *name, Symbol *context) {
+  return SymTable_find (st, name, context) != NULL;
+}
+
+Symbol * SymTable_find (SymTable *st, char *name, Symbol *context) {
   int i;
 
   for (i = 0; i < st->count; i++) {
     if (st->symbols[i]->context == context &&
         !strcmp(st->symbols[i]->name, name))
-      return true;
+      return st->symbols[i];
   }
 
-  return false;
+  return NULL;
 }
 
 void SymTable_print (SymTable *st) {
