@@ -112,7 +112,7 @@ int char_type (char c) {
         return CT_WHITE;
         break;
 
-      case '=': case '<': case '>':
+      case '=': case '<': case '>': case '!':
         return CT_DPUNC;
         break;
 
