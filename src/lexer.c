@@ -19,6 +19,15 @@ int yylex () {
   strempty (yytext);
 
   while (EOF != (c = fgetc (yyin))) {
+    /* switch (char_type (c)) { */
+    /* case CT_OTHER: printf ("other: '%c' (%d)\n", c, c); break; */
+    /* case CT_WHITE: printf ("white: '%c' (%d)\n", c, c); break; */
+    /* case CT_ALPHA: printf ("alpha: '%c' (%d)\n", c, c); break; */
+    /* case CT_DIGIT: printf ("digit: '%c' (%d)\n", c, c); break; */
+    /* case CT_SPUNC: printf ("spunc: '%c' (%d)\n", c, c); break; */
+    /* case CT_DPUNC: printf ("dpunc: '%c' (%d)\n", c, c); break; */
+    /* case CT_VARID: printf ("varid: '%c' (%d)\n", c, c); break; */
+    /* } */
     switch (char_type (c)) {
       /* Ponctuation simple et double */
       case CT_SPUNC:
@@ -50,7 +59,8 @@ int yylex () {
 
           return VAR_ID;
         } else {
-          ungetc (next, yyin); /* TODO: un $ tout seul est une erreur de syntaxe */
+          fputs ("invalid identifier\n", stderr);
+          exit (EXIT_FAILURE);
         }
         break;
 
@@ -104,7 +114,7 @@ int char_type (char c) {
   if ((c >= 'A' && c <= 'Z') ||
       (c >= 'a' && c <= 'z') || c == '_' ) {
     return CT_ALPHA;
-  } else if (c >= '0' && c < '9') {
+  } else if (c >= '0' && c <= '9') {
     return CT_DIGIT;
   } else {
     switch(c) {

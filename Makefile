@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -ansi -pedantic
+CFLAGS = -Wall -ansi -pedantic -g
 ifeq (${DEBUG},1)
 	CFLAGS += -g
 endif

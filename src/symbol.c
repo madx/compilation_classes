@@ -67,13 +67,14 @@ void SymTable_build (SymTable *st, Node *n) {
   if (n == NULL) return;
 
   switch(n->type) {
-    case N_VAR_DEC:
-      SymTable_add (st,
-        Symbol_new (n->value->as.string, scope, ST_INT, context)
-      );
+    case N_VAR_DEC: {
+      Symbol *var = Symbol_new (n->value->as.string, scope, ST_INT, context);
+      var->data = 1;
+      SymTable_add (st, var);
       SymTable_build (st, n->child);
       SymTable_build (st, n->next);
       break;
+    }
 
     case N_ARR_DEC: {
       Symbol *arr = Symbol_new (n->value->as.string, scope, ST_ARR, context);
@@ -121,8 +122,8 @@ void SymTable_build (SymTable *st, Node *n) {
 
     case N_VAR:
     case N_CALL:
-      if (!SymTable_exists (st, n->value->as.string, context) &&
-          !SymTable_exists (st, n->value->as.string, NULL)) {
+      if (!SymTable_existsInContext (st, n->value->as.string, context) &&
+          !SymTable_existsInContext (st, n->value->as.string, NULL)) {
         fprintf (stderr, "error: %s '%s' undeclared\n", Node_name (n),
             n->value->as.string);
         SymTable_hasFailed (true);
@@ -155,9 +156,9 @@ bool SymTable_hasFailed(bool set) {
 }
 
 void SymTable_add (SymTable *st, Symbol *s) {
-  if (SymTable_exists (st, s->name, s->context)) {
+  if (SymTable_existsInContext (st, s->name, s->context)) {
     fprintf (stderr, "error: '%s' is already declared in %s\n",
-        s->name, (NULL != s->context) ? s->context->name : "*");
+             s->name, (NULL != s->context) ? s->context->name : "*");
     SymTable_hasFailed (true);
   }
 
@@ -170,18 +171,29 @@ void SymTable_add (SymTable *st, Symbol *s) {
   }
 }
 
-bool SymTable_exists (SymTable *st, char *name, Symbol *context) {
-  return SymTable_find (st, name, context) != NULL;
+bool SymTable_existsInContext (SymTable *st, char *name, Symbol *context) {
+  int i;
+
+  for (i = 0; i < st->count; i++)
+    if (st->symbols[i]->context == context &&
+        !strcmp(st->symbols[i]->name, name))
+      return true;
+
+  return false;
 }
 
 Symbol * SymTable_find (SymTable *st, char *name, Symbol *context) {
   int i;
 
-  for (i = 0; i < st->count; i++) {
+  for (i = 0; i < st->count; i++)
     if (st->symbols[i]->context == context &&
         !strcmp(st->symbols[i]->name, name))
       return st->symbols[i];
-  }
+
+  for (i = 0; i < st->count; i++)
+    if (st->symbols[i]->context == NULL &&
+        !strcmp(st->symbols[i]->name, name))
+      return st->symbols[i];
 
   return NULL;
 }

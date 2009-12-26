@@ -84,6 +84,7 @@ int main (int argc, char* argv[]) {
     Program * p = AST_compile (ast, st);
     SymTable_print (st);
     Program_print (p);
+    Program_destroy (p);
     break;
     }
   case EXEC: {
@@ -96,6 +97,9 @@ int main (int argc, char* argv[]) {
     break;
     }
   }
+
+  SymTable_destroy (st);
+  Node_destroy (ast);
 
   fclose (alvcout);
   fclose (alvcin);

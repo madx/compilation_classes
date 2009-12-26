@@ -18,7 +18,7 @@ char *strdup (const char *str) {
 #endif
 
 static char *node_names[] = {
-  "program",   "fun_dec",    "var_dec",    "arr_dec",     "var_exp",
+  "program",   "fun_dec",    "var_dec",    "arr_dec",
   "op_exp",    "int_exp",    "call_exp",   "read_exp",    "call_inst",
   "set_inst",  "if_inst",    "while_inst", "return_inst", "write_inst",
   "void_inst", "block_inst", "var",        "call",        "exp_list",
@@ -37,6 +37,7 @@ static char *op_str (int op) {
     case '-': return "-";  break;
     case '*': return "×";  break;
     case '/': return "÷";  break;
+    case '%': return "mod";  break;
   }
   return "unknown";
 }
@@ -105,13 +106,6 @@ void AST_toDot_recurse (Node *parent, Node *n) {
   }
 }
 
-void AST_toC (Node *n) {
-
-}
-
-void AST_toC_recurse (Node *parent, Node *n) {
-}
-
 Node * Node_lastSibling (Node *n) {
   Node *tmp = n;
 
@@ -122,6 +116,7 @@ Node * Node_lastSibling (Node *n) {
 
 int Node_countType (Node *n, NodeType type) {
   int sum = 0;
+  if (NULL == n) return 0;
   if (n->child != NULL) sum += Node_countType (n->child, type);
   if (n->next != NULL)  sum += Node_countType (n->next, type);
 

@@ -16,7 +16,7 @@ extern int   yyline;
  * program -> varDecList ';' funDefList '.'
  */
 Node * rule_program () {
-  Node *var_dec_list = NULL, *fun_def_list = NULL, *child = NULL;
+  Node *var_dec_list = NULL, *fun_def_list = NULL;
   Value *val;
   if (yycc == INT) {
     var_dec_list = rule_varDecList ();
@@ -33,16 +33,16 @@ Node * rule_program () {
 
   if (yycc != '.') expecting ("'.'");
 
-  if (NULL != var_dec_list) {
-    Node_lastSibling (var_dec_list)->next = fun_def_list;
-    child = var_dec_list;
-  } else {
-    child = fun_def_list;
-  }
+  if (NULL == var_dec_list)
+    var_dec_list = Node_new (N_FAKE_NODE, NULL, NULL, NULL);
+  if (NULL == fun_def_list)
+    fun_def_list = Node_new (N_FAKE_NODE, NULL, NULL, NULL);
+
+  Node_lastSibling (var_dec_list)->next = fun_def_list;
 
   val = Value_str ("root");
 
-  return Node_new (N_PROGRAM, val, NULL, child);
+  return Node_new (N_PROGRAM, val, NULL, var_dec_list);
 }
 
 /* varDecList -> varDec varDecList2
@@ -563,6 +563,7 @@ Node * rule_arithmeticExpr () {
 
 /* term -> factor '/' term
  * term -> factor '*' term
+ * term -> factor '%' term
  * term -> factor
  */
 Node * rule_term () {
@@ -573,7 +574,7 @@ Node * rule_term () {
       yycc == READ || yycc == FUN_ID) {
     factor = rule_factor ();
 
-    if (yycc == '/' || yycc == '*') {
+    if (yycc == '/' || yycc == '*' || yycc == '%') {
       op = Value_int ((int) yycc);
       next_token ();
       term = rule_term ();
