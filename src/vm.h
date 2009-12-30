@@ -25,7 +25,7 @@ typedef struct vm_t_ {
 } VM;
 
 #define N_COMPFUNCS 22
-typedef void (*CompFunc)(Node *n, SymTable *s, Program *p, CompContext *cc);
+typedef void (*CompFunc)(Node *n, SymTable *s, Program *p, CompContext *cc, bool follow);
 
 Program * Program_new     (int size);
 void      Program_destroy (Program *p);
@@ -37,30 +37,30 @@ void          CompContext_destroy (CompContext *cc);
 
 Program * AST_compile         (Node *ast, SymTable *st);
 
-void AST_callCompFunc (Node *node, SymTable *st, Program *p, CompContext *cc);
+void AST_callCompFunc (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);
 
-void AST_cmp_program     (Node *node, SymTable *st, Program *p, CompContext *cc);
-void AST_cmp_fun_dec     (Node *node, SymTable *st, Program *p, CompContext *cc);
-void AST_cmp_var_dec     (Node *node, SymTable *st, Program *p, CompContext *cc);
-void AST_cmp_arr_dec     (Node *node, SymTable *st, Program *p, CompContext *cc);
-void AST_cmp_op_exp      (Node *node, SymTable *st, Program *p, CompContext *cc);
-void AST_cmp_int_exp     (Node *node, SymTable *st, Program *p, CompContext *cc);
-void AST_cmp_call_exp    (Node *node, SymTable *st, Program *p, CompContext *cc);
-void AST_cmp_read_exp    (Node *node, SymTable *st, Program *p, CompContext *cc);
-void AST_cmp_call_inst   (Node *node, SymTable *st, Program *p, CompContext *cc);
-void AST_cmp_set_inst    (Node *node, SymTable *st, Program *p, CompContext *cc);
-void AST_cmp_if_inst     (Node *node, SymTable *st, Program *p, CompContext *cc);
-void AST_cmp_while_inst  (Node *node, SymTable *st, Program *p, CompContext *cc);
-void AST_cmp_return_inst (Node *node, SymTable *st, Program *p, CompContext *cc);
-void AST_cmp_write_inst  (Node *node, SymTable *st, Program *p, CompContext *cc);
-void AST_cmp_void_inst   (Node *node, SymTable *st, Program *p, CompContext *cc);
-void AST_cmp_block_inst  (Node *node, SymTable *st, Program *p, CompContext *cc);
-void AST_cmp_var         (Node *node, SymTable *st, Program *p, CompContext *cc);
-void AST_cmp_call        (Node *node, SymTable *st, Program *p, CompContext *cc);
-void AST_cmp_exp_list    (Node *node, SymTable *st, Program *p, CompContext *cc);
-void AST_cmp_inst_list   (Node *node, SymTable *st, Program *p, CompContext *cc);
-void AST_cmp_dec_list    (Node *node, SymTable *st, Program *p, CompContext *cc);
-void AST_cmp_fake_node   (Node *node, SymTable *st, Program *p, CompContext *cc);
+void AST_cmp_program     (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);
+void AST_cmp_fun_dec     (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);
+void AST_cmp_var_dec     (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);
+void AST_cmp_arr_dec     (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);
+void AST_cmp_op_exp      (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);
+void AST_cmp_int_exp     (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);
+void AST_cmp_call_exp    (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);
+void AST_cmp_read_exp    (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);
+void AST_cmp_call_inst   (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);
+void AST_cmp_set_inst    (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);
+void AST_cmp_if_inst     (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);
+void AST_cmp_while_inst  (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);
+void AST_cmp_return_inst (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);
+void AST_cmp_write_inst  (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);
+void AST_cmp_void_inst   (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);
+void AST_cmp_block_inst  (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);
+void AST_cmp_var         (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);
+void AST_cmp_call        (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);
+void AST_cmp_exp_list    (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);
+void AST_cmp_inst_list   (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);
+void AST_cmp_dec_list    (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);
+void AST_cmp_fake_node   (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);
 
 int AST_get_arr_index (Symbol *var, Node *idx);
 #endif
