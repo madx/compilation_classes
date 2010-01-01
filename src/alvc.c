@@ -68,22 +68,27 @@ int main (int argc, char* argv[]) {
     exit (EXIT_FAILURE);
   }
 
-  next_token ();
-  ast = rule_program ();
-
-  st = SymTable_new (
-    Node_countType (ast, N_VAR_DEC) +
-    Node_countType (ast, N_FUN_DEC) +
-    Node_countType (ast, N_ARR_DEC)
-  );
-  SymTable_build (st, ast);
-  if (SymTable_hasFailed (false)) exit(EXIT_FAILURE);
-
   switch (options.mode) {
   case COMPILE: {
-    Program * p = AST_compile (ast, st);
-    SymTable_print (st);
-    Program_print (p);
+    Program * p;
+    int i;
+
+    next_token ();
+    ast = rule_program ();
+
+    st = SymTable_new (
+      Node_countType (ast, N_VAR_DEC) +
+      Node_countType (ast, N_FUN_DEC) +
+      Node_countType (ast, N_ARR_DEC)
+    );
+    SymTable_build (st, ast);
+    if (SymTable_hasFailed (false)) exit(EXIT_FAILURE);
+    p = AST_compile (ast, st);
+    fprintf(alvcout, "%d:", p->size);
+    for (i = 0; i < p->size - 1; i++)
+      fprintf (alvcout, "%d:", p->code[i]);
+    fprintf (alvcout, "%d", p->code[i]);
+    fflush (alvcout);
     Program_destroy (p);
     break;
     }
@@ -94,6 +99,22 @@ int main (int argc, char* argv[]) {
     break;
     }
   case TRACE: {
+    Program * p;
+    next_token ();
+    ast = rule_program ();
+
+    st = SymTable_new (
+      Node_countType (ast, N_VAR_DEC) +
+      Node_countType (ast, N_FUN_DEC) +
+      Node_countType (ast, N_ARR_DEC)
+    );
+    SymTable_build (st, ast);
+    if (SymTable_hasFailed (false)) exit(EXIT_FAILURE);
+
+    p = AST_compile (ast, st);
+    SymTable_print (st);
+    Program_print (p);
+    Program_destroy (p);
     break;
     }
   }

@@ -30,13 +30,14 @@ typedef void (*CompFunc)(Node *n, SymTable *s, Program *p, CompContext *cc, bool
 Program * Program_new     (int size);
 void      Program_destroy (Program *p);
 void      Program_print   (Program *p);
+Program * Program_resize  (Program *p);
 
 CompContext * CompContext_new ();
 void          CompContext_reset (CompContext *cc, Symbol *context);
 void          CompContext_destroy (CompContext *cc);
 
-Program * AST_compile         (Node *ast, SymTable *st);
-
+Program * AST_compile (Node *ast, SymTable *st);
+int  AST_progsize     (Node *node, SymTable *st);
 void AST_callCompFunc (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);
 
 void AST_cmp_program     (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);

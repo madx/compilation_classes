@@ -96,6 +96,31 @@ void Program_print (Program *p) {
   }
 }
 
+Program * Program_resize (Program *p) {
+  int i, j, psize;
+  OpCode c;
+  Program *new;
+
+  psize = 0;
+  for (i = 0; i < p->size; i++) {
+    c = p->code[i];
+    for (j = 0; j < N_OPCODES; j++)
+      if (OpCodes[j].opCode == c) break;
+    if (c == _NIL) break;
+
+    if (OpCodes[j].hasOperand) {
+      psize += 2;
+      i++;
+    } else {
+      psize += 1;
+    }
+  }
+  new = Program_new (psize);
+  new->code = memcpy (new->code, p->code, psize * sizeof (*p->code));
+
+  return new;
+}
+
 CompContext * CompContext_new () {
   CompContext *cc;
 
@@ -118,25 +143,60 @@ void CompContext_destroy (CompContext *cc) {
 }
 
 Program * AST_compile (Node *ast, SymTable *st) {
-  Program *p;
-  Symbol  *main_sym;
+  Program *p, *r;
   CompContext *cc;
 
-  main_sym = SymTable_find (st, "main", NULL);
-
-  if (NULL == main_sym) {
+  if (NULL == SymTable_find (st, "main", NULL)) {
     fputs ("error: missing main function, can't compile\n", stderr);
     exit (EXIT_FAILURE);
   }
 
-  p = Program_new (1000);
+  p = Program_new (AST_progsize (ast, st));
   cc = CompContext_new ();
 
   AST_cmp_program (ast, st, p, cc, true);
 
+  r = Program_resize (p);
+  Program_destroy (p);
+
   CompContext_destroy (cc);
 
-  return p;
+  return r;
+}
+
+int AST_progsize (Node *node, SymTable *st) {
+  int opcode_c = 0;
+
+  if (NULL == node) return 0;
+
+  switch (node->type) {
+  case N_PROGRAM:     opcode_c = 4; break;
+  case N_FUN_DEC:     opcode_c = 5; break;
+  case N_VAR_DEC:     opcode_c = 0; break;
+  case N_ARR_DEC:     opcode_c = 0; break;
+  case N_OP_EXP:      opcode_c = 2; break;
+  case N_INT_EXP:     opcode_c = 2; break;
+  case N_CALL_EXP:    opcode_c = 0; break;
+  case N_READ_EXP:    opcode_c = 0; break;
+  case N_CALL_INST:   opcode_c = 0; break;
+  case N_SET_INST:    opcode_c = 4; break;
+  case N_IF_INST:     opcode_c = 4; break;
+  case N_WHILE_INST:  opcode_c = 4; break;
+  case N_RETURN_INST: opcode_c = 2; break;
+  case N_WRITE_INST:  opcode_c = 1; break;
+  case N_VOID_INST:   opcode_c = 0; break;
+  case N_BLOCK_INST:  opcode_c = 0; break;
+  case N_VAR:         opcode_c = 4; break;
+  case N_CALL:        opcode_c = 6; break;
+  case N_EXP_LIST:    opcode_c = 0; break;
+  case N_INST_LIST:   opcode_c = 0; break;
+  case N_DEC_LIST:    opcode_c = 0; break;
+  case N_FAKE_NODE:   opcode_c = 0; break;
+  }
+
+  return opcode_c +
+         AST_progsize (node->child, st) +
+         AST_progsize (node->next, st);
 }
 
 void AST_callCompFunc (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
@@ -183,10 +243,10 @@ void AST_cmp_fun_dec (Node *node, SymTable *st, Program *p, CompContext *cc, boo
   /* Comptage du nombre d'args et de locales */
   if (NULL != node->child)
     arg_c = Node_countType (node->child->child, N_VAR_DEC) +
-                Node_countType (node->child->child, N_ARR_DEC);
+            Node_countType (node->child->child, N_ARR_DEC);
   if (NULL != node->child->next)
     local_c = Node_countType (node->child->next->child, N_VAR_DEC) +
-                  Node_countType (node->child->next->child, N_ARR_DEC);
+              Node_countType (node->child->next->child, N_ARR_DEC);
 
   /* Réservation de l'espace pour les locales */
   if (local_c != 0) {
@@ -289,20 +349,21 @@ void AST_cmp_int_exp (Node *node, SymTable *st, Program *p, CompContext *cc, boo
   if (follow) AST_callCompFunc (node->next, st, p, cc, follow);
 }
 
+/* -- inutile -- */
 void AST_cmp_call_exp (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
   AST_callCompFunc (node->child, st, p, cc, true);
   AST_callCompFunc (node->next, st, p, cc, true);
 }
 
 void AST_cmp_read_exp (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
-  AST_callCompFunc (node->child, st, p, cc, true);
   AST_callCompFunc (node->next, st, p, cc, true);
 }
 
 void AST_cmp_call_inst (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
   AST_callCompFunc (node->child, st, p, cc, true);
-  AST_callCompFunc (node->next, st, p, cc, true);
+  if (follow) AST_callCompFunc (node->next, st, p, cc, follow);
 }
+/* -- fin inutile -- */
 
 void AST_cmp_set_inst (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
   Symbol *var;
@@ -388,17 +449,18 @@ void AST_cmp_return_inst (Node *node, SymTable *st, Program *p, CompContext *cc,
 }
 
 void AST_cmp_write_inst (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
+  AST_callCompFunc (node->child, st, p, cc, true);
   p->code[cc->pc++] = _WRITE;
+  if (follow) AST_callCompFunc (node->next, st, p, cc, follow);
 }
 
 void AST_cmp_void_inst (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
-  AST_callCompFunc (node->child, st, p, cc, true);
-  AST_callCompFunc (node->next, st, p, cc, true);
+  if (follow) AST_callCompFunc (node->next, st, p, cc, follow);
 }
 
 void AST_cmp_block_inst (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
   AST_callCompFunc (node->child, st, p, cc, follow);
-  AST_callCompFunc (node->next, st, p, cc, follow);
+  if (follow) AST_callCompFunc (node->next, st, p, cc, follow);
 }
 
 void AST_cmp_var (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
@@ -434,8 +496,30 @@ void AST_cmp_var (Node *node, SymTable *st, Program *p, CompContext *cc, bool fo
 }
 
 void AST_cmp_call (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
+  Symbol *func;
+  int     argc = 0;
+  Node   *tmp;
+
+  p->code[cc->pc++] = _STACK;
+  p->code[cc->pc++] = 1;
   AST_callCompFunc (node->child, st, p, cc, true);
-  AST_callCompFunc (node->next, st, p, cc, true);
+
+  func = SymTable_find (st, node->value->as.string, cc->context);
+  p->code[cc->pc++] = _CALL;
+  p->code[cc->pc++] = func->address;
+
+  tmp = node->child;
+  while (NULL != tmp) {
+    argc++;
+    tmp = tmp->next;
+  }
+
+  if (argc != 0) {
+    p->code[cc->pc++] = _STACK;
+    p->code[cc->pc++] = -(argc);
+  }
+
+  if (follow) AST_callCompFunc (node->next, st, p, cc, follow);
 }
 
 void AST_cmp_exp_list (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
@@ -454,172 +538,6 @@ void AST_cmp_dec_list (Node *node, SymTable *st, Program *p, CompContext *cc, bo
 
 void AST_cmp_fake_node (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
 }
-
-/* void AST_compile_recurse (Node *n, SymTable *st, Program *p) { */
-/*   static Symbol *context = NULL; */
-/*   static int pc = 5, glob_c = 0, local_c = 0, arg_c = 0; */
-/*  */
-/*   if (n == NULL) return; */
-/*  */
-/*   switch (n->type) { */
-/*   case N_FUN_DEC: { */
-/*     Symbol *func, *old_context; */
-/*     int args; */
-/*  */
-/*     func = SymTable_find (st, n->value->as.string, context); */
-/*     func->address = pc; */
-/*  */
-/*     p->code[pc++] = _IN; */
-/*  */
-/*     old_context = context; */
-/*     context = func; */
-/*  */
-/*     local_c = arg_c = 0; */
-/*  */
-/*     p->code[pc++] = _STACK; */
-/*     p->code[args = pc++] = 0; */
-/*     AST_compile_recurse (n->child, st, p); */
-/*     p->code[args] = local_c; */
-/*  */
-/*     context = old_context; */
-/*  */
-/*     p->code[pc++] = _OUT; */
-/*     p->code[pc++] = _RETURN; */
-/*  */
-/*     AST_compile_recurse (n->next, st, p); */
-/*  */
-/*     } break; */
-/*  */
-/*   case N_VAR_DEC: case N_ARR_DEC: { */
-/*     Symbol *var; */
-/*     var = SymTable_find (st, n->value->as.string, context); */
-/*  */
-/*     switch (var->scope) { */
-/*     case SC_GLOBAL: */
-/*       var->address = glob_c++; */
-/*       glob_c += var->data - 1; */
-/*       break; */
-/*     case SC_LOCAL: */
-/*       var->address = local_c++; */
-/*       Symbol_print (var); */
-/*       local_c += var->data - 1; */
-/*       break; */
-/*     case SC_ARG: */
-/*       var->address = arg_c++; */
-/*       arg_c += var->data - 1; */
-/*       break; */
-/*     } */
-/*  */
-/*     AST_compile_recurse (n->next, st, p); */
-/*  */
-/*     } break; */
-/*  */
-/*   case N_VAR: { */
-/*     Symbol *var; */
-/*     var = SymTable_find (st, n->value->as.string, context); */
-/*  */
-/*     switch (var->scope) { */
-/*     case SC_GLOBAL: */
-/*       p->code[pc++] = _PUSHG; */
-/*       p->code[pc++] = var->address; */
-/*       break; */
-/*     case SC_LOCAL: */
-/*       break; */
-/*     case SC_ARG: */
-/*       break; */
-/*     } */
-/*  */
-/*     AST_compile_recurse (n->next, st, p); */
-/*     } break; */
-/*  */
-/*   case N_OP_EXP: */
-/*     AST_compile_recurse (n->child, st, p); */
-/*     AST_compile_recurse (n->child->next, st, p); */
-/*     switch (n->value->as.number) { */
-/*     case '+': p->code[pc++] = _ADD; break; */
-/*     case '*': p->code[pc++] = _MUL; break; */
-/*     case '-': p->code[pc++] = _SUB; break; */
-/*     case '/': p->code[pc++] = _DIV; break; */
-/*     case '%': p->code[pc++] = _MOD; break; */
-/*     case '<': p->code[pc++] = _LT; break; */
-/*     case LE:  p->code[pc++] = _LE; break; */
-/*     case EQ:  p->code[pc++] = _EQ; break; */
-/*     case '>': */
-/*       p->code[pc++] = _LE; */
-/*       p->code[pc++] = _NOT; */
-/*       break; */
-/*     case GE: */
-/*       p->code[pc++] = _LT; */
-/*       p->code[pc++] = _NOT; */
-/*       break; */
-/*     case NEQ: */
-/*       p->code[pc++] = _EQ; */
-/*       p->code[pc++] = _NOT; */
-/*       break; */
-/*     } */
-/*     break; */
-/*  */
-/*   case N_INT_EXP: */
-/*     p->code[pc++] = _PUSHC; */
-/*     p->code[pc++] = n->value->as.number; */
-/*     break; */
-/*  */
-/*   case N_READ_EXP: */
-/*     p->code[pc++] = _READ; */
-/*     break; */
-/*  */
-/*   case N_IF_INST: { */
-/*     int jump_to; */
-/*  */
-/*     AST_compile_recurse (n->child, st, p); */
-/*  */
-/*     p->code[pc++] = _IFFALS; */
-/*     p->code[jump_to = pc++] = 0; */
-/*  */
-/*     AST_compile_recurse (n->child->next, st, p); */
-/*     p->code[jump_to] = pc; */
-/*  */
-/*     if (NULL != n->child->next->next) { */
-/*       AST_compile_recurse (n->child->next->next, st, p); */
-/*     } */
-/*  */
-/*     AST_compile_recurse (n->next, st, p); */
-/*  */
-/*     } break; */
-/*  */
-/*   case N_WHILE_INST: { */
-/*     int jump_to, start; */
-/*  */
-/*     start = pc; */
-/*     AST_compile_recurse (n->child, st, p); */
-/*  */
-/*     p->code[pc++] = _IFFALS; */
-/*     p->code[jump_to = pc++] = 0; */
-/*  */
-/*     AST_compile_recurse (n->child->next, st, p); */
-/*     p->code[pc++] = _JUMP; */
-/*     p->code[pc++] = start; */
-/*     p->code[jump_to] = pc; */
-/*  */
-/*     AST_compile_recurse (n->next, st, p); */
-/*  */
-/*     } break; */
-/*  */
-/*   case N_WRITE_INST: */
-/*     AST_compile_recurse (n->child, st, p); */
-/*     p->code[pc++] = _WRITE; */
-/*     AST_compile_recurse (n->next, st, p); */
-/*     break; */
-/*  */
-/*   case N_INST_LIST: */
-/*     AST_compile_recurse (n->child, st, p); */
-/*     break; */
-/*  */
-/*   default: */
-/*     AST_compile_recurse (n->child, st, p); */
-/*     AST_compile_recurse (n->next, st, p); */
-/*   } */
-/* } */
 
 int AST_get_arr_index (Symbol *var, Node *idx) {
   int arr_index = 0;
