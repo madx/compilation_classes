@@ -7,7 +7,7 @@
 #include "ast.h"
 #include "parser.h"
 #include "symbol.h"
-#include "vm.h"
+#include "compile.h"
 #include "alvc.h"
 
 #define arg(s) (!strcmp(s, argv[i]))

@@ -6,7 +6,7 @@
 #include "ast.h"
 #include "parser.h"
 #include "symbol.h"
-#include "vm.h"
+#include "compile.h"
 
 struct {
   OpCode opCode;
