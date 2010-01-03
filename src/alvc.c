@@ -24,6 +24,7 @@ int main (int argc, char* argv[]) {
   Node *ast;
   SymTable *st;
   Program *p;
+  int exit_status = EXIT_SUCCESS;
 
   struct {
     enum { COMPILE, EXEC, BYTECODE, TRACE } mode;
@@ -92,8 +93,10 @@ int main (int argc, char* argv[]) {
     break;
   case EXEC: {
     VM * vm = VM_new (p, SymTable_globalSize (st));
+    int es;
     if (VM_getDebugMode ()) Program_print (p);
-    printf ("\033[1;31m?>\033[0m %d\n", VM_run (vm));
+    printf ("\033[1;31m?>\033[0m %d\n", es = VM_run (vm));
+    exit_status = es;
     VM_destroy (vm);
     Program_destroy (p);
     break;
@@ -114,7 +117,7 @@ int main (int argc, char* argv[]) {
   fclose (alvcout);
   fclose (alvcin);
 
-  exit (EXIT_SUCCESS);
+  exit (exit_status);
 }
 
 void fatal (char *msg) {
