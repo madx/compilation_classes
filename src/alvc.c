@@ -57,8 +57,8 @@ int main (int argc, char* argv[]) {
 
   if (argv[++i]) options.out = argv[i];
 
-  alvcin  = fopen (options.in,  "r");
-  if (NULL == alvcout) {
+  alvcin = fopen (options.in,  "r");
+  if (NULL == alvcin) {
     fprintf (stderr, "unable to open %s for reading\n", options.in);
     exit (EXIT_FAILURE);
   }
