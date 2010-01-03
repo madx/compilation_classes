@@ -34,8 +34,10 @@ test_parser: ${OBJ}
 	@echo CC test/parser.c
 	$(CC) $(CFLAGS) -Isrc/ -o bin/test_parser $^ test/parser.c
 
-clean:
+clear:
 	rm -rf obj/ bin/
+clean:
+	rm -rf obj/
 
 obj/%.o: src/%.c
 	@mkdir -p obj/
