@@ -2,7 +2,7 @@ add(entier $x, entier $y)
 entier $z;
 {
 $z = $x + $y;
-retour($z);
+renvoyer($z);
 }
 
 main() 

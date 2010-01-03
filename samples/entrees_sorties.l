@@ -4,6 +4,6 @@ main()
 {
 $a = lire();
 ecrire($a);
-retour ($a);
+renvoyer ($a);
 }
 .
