@@ -1,5 +1,5 @@
-#ifndef VM_H_
-#define VM_H_
+#ifndef COMPILE_H_
+#define COMPILE_H_
 
 /* Opcodes */
 #define N_OPCODES 27
@@ -19,18 +19,14 @@ typedef struct comp_context_t_ {
   int pc, glob_c, local_c, arg_c;
 } CompContext;
 
-typedef struct vm_t_ {
-  int BEG, BEL, BP, SP;
-  int *mem;
-} VM;
-
-#define N_COMPFUNCS 22
+#define N_COMPFUNCS 21
 typedef void (*CompFunc)(Node *n, SymTable *s, Program *p, CompContext *cc, bool follow);
 
 Program * Program_new     (int size);
 void      Program_destroy (Program *p);
 void      Program_print   (Program *p);
 Program * Program_resize  (Program *p);
+void      Program_dump (Program *p, SymTable *st, FILE *stream);
 
 CompContext * CompContext_new ();
 void          CompContext_reset (CompContext *cc, Symbol *context);

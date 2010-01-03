@@ -4,7 +4,7 @@ ifeq (${DEBUG},1)
 	CFLAGS += -g
 endif
 
-SRC = src/ast.c src/lexer.c src/parser.c src/symbol.c src/vm.c
+SRC = src/ast.c src/lexer.c src/parser.c src/symbol.c src/compile.c src/vm.c
 
 OBJ = ${SRC:src/%.c=obj/%.o}
 

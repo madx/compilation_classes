@@ -28,6 +28,7 @@ Node * rule_term              ();
 Node * rule_factor            ();
 Node * rule_variable          ();
 Node * rule_funCall           ();
+Node * rule_funCallExp        ();
 Node * rule_arguments         ();
 Node * rule_exprList          ();
 Node * rule_exprList2         ();

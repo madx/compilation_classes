@@ -607,7 +607,7 @@ Node * rule_factor () {
     out = rule_variable ();
 
   } else if (yycc == FUN_ID) {
-    out = rule_funCall ();
+    out = rule_funCallExp ();
 
   } else if (yycc == '(') {
     next_token ();
@@ -674,6 +674,21 @@ Node * rule_funCall () {
   } else expecting ("function identifier");
 
   return Node_new (N_CALL, name, NULL, args);
+}
+
+/* funCallExp -> FUN_ID arguments
+ */
+Node * rule_funCallExp () {
+  Node  *args = NULL;
+  Value *name = NULL;
+  if (yycc == FUN_ID) {
+    name = Value_str (yytext);
+    next_token ();
+    args = rule_arguments ();
+
+  } else expecting ("function identifier");
+
+  return Node_new (N_CALL_EXP, name, NULL, args);
 }
 
 /* arguments -> '(' exprList ')'

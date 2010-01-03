@@ -8,6 +8,7 @@
 #include "parser.h"
 #include "symbol.h"
 #include "compile.h"
+#include "vm.h"
 #include "alvc.h"
 
 #define arg(s) (!strcmp(s, argv[i]))
@@ -22,6 +23,7 @@ int main (int argc, char* argv[]) {
   FILE *alvcout, *alvcin;
   Node *ast;
   SymTable *st;
+  Program *p;
 
   struct {
     enum { COMPILE, EXEC, BYTECODE, TRACE } mode;
@@ -68,11 +70,7 @@ int main (int argc, char* argv[]) {
     exit (EXIT_FAILURE);
   }
 
-  switch (options.mode) {
-  case COMPILE: {
-    Program * p;
-    int i;
-
+  if (options.mode != BYTECODE) {
     next_token ();
     ast = rule_program ();
 
@@ -83,40 +81,31 @@ int main (int argc, char* argv[]) {
     );
     SymTable_build (st, ast);
     if (SymTable_hasFailed (false)) exit(EXIT_FAILURE);
+
     p = AST_compile (ast, st);
-    fprintf(alvcout, "%d:", p->size);
-    for (i = 0; i < p->size - 1; i++)
-      fprintf (alvcout, "%d:", p->code[i]);
-    fprintf (alvcout, "%d", p->code[i]);
-    fflush (alvcout);
+  }
+
+  switch (options.mode) {
+  case COMPILE:
+    Program_dump (p, st, alvcout);
     Program_destroy (p);
     break;
-    }
   case EXEC: {
+    VM * vm = VM_new (p, SymTable_globalSize (st));
+    if (VM_getDebugMode ()) Program_print (p);
+    printf ("\033[1;31m?>\033[0m %d\n", VM_run (vm));
+    VM_destroy (vm);
+    Program_destroy (p);
     break;
     }
   case BYTECODE: {
     break;
     }
-  case TRACE: {
-    Program * p;
-    next_token ();
-    ast = rule_program ();
-
-    st = SymTable_new (
-      Node_countType (ast, N_VAR_DEC) +
-      Node_countType (ast, N_FUN_DEC) +
-      Node_countType (ast, N_ARR_DEC)
-    );
-    SymTable_build (st, ast);
-    if (SymTable_hasFailed (false)) exit(EXIT_FAILURE);
-
-    p = AST_compile (ast, st);
+  case TRACE:
     SymTable_print (st);
     Program_print (p);
     Program_destroy (p);
     break;
-    }
   }
 
   SymTable_destroy (st);

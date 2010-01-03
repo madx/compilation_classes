@@ -122,6 +122,7 @@ void SymTable_build (SymTable *st, Node *n) {
 
     case N_VAR:
     case N_CALL:
+    case N_CALL_EXP:
       if (!SymTable_existsInContext (st, n->value->as.string, context) &&
           !SymTable_existsInContext (st, n->value->as.string, NULL)) {
         fprintf (stderr, "error: %s '%s' undeclared\n", Node_name (n),
@@ -205,4 +206,14 @@ void SymTable_print (SymTable *st) {
 
   for (i = 0; i < st->size; i++)
     if (st->symbols[i] != NULL) Symbol_print (st->symbols[i]);
- }
+}
+
+int SymTable_globalSize (SymTable *st) {
+  int i, globSize = 0;
+
+  for (i = 0; i < st->size; i++)
+    if (st->symbols[i]->scope == SC_GLOBAL)
+      globSize += st->symbols[i]->data;
+
+  return globSize;
+}

@@ -19,7 +19,7 @@ char *strdup (const char *str) {
 
 static char *node_names[] = {
   "program",   "fun_dec",    "var_dec",    "arr_dec",
-  "op_exp",    "int_exp",    "call_exp",   "read_exp",    "call_inst",
+  "op_exp",    "int_exp",    "call_exp",   "read_exp",
   "set_inst",  "if_inst",    "while_inst", "return_inst", "write_inst",
   "void_inst", "block_inst", "var",        "call",        "exp_list",
   "inst_list", "dec_list",   "fake_node"

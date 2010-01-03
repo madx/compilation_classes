@@ -42,7 +42,6 @@ struct {
   { N_INT_EXP,     &AST_cmp_int_exp,     "AST_cmp_int_exp    " },
   { N_CALL_EXP,    &AST_cmp_call_exp,    "AST_cmp_call_exp   " },
   { N_READ_EXP,    &AST_cmp_read_exp,    "AST_cmp_read_exp   " },
-  { N_CALL_INST,   &AST_cmp_call_inst,   "AST_cmp_call_inst  " },
   { N_SET_INST,    &AST_cmp_set_inst,    "AST_cmp_set_inst   " },
   { N_IF_INST,     &AST_cmp_if_inst,     "AST_cmp_if_inst    " },
   { N_WHILE_INST,  &AST_cmp_while_inst,  "AST_cmp_while_inst " },
@@ -121,6 +120,15 @@ Program * Program_resize (Program *p) {
   return new;
 }
 
+void Program_dump (Program *p, SymTable *st, FILE *stream) {
+  int i;
+  fprintf(stream, "%d:%d:", SymTable_globalSize (st), p->size);
+  for (i = 0; i < p->size - 1; i++)
+    fprintf (stream, "%d:", p->code[i]);
+  fprintf (stream, "%d\n", p->code[i]);
+  fflush (stream);
+}
+
 CompContext * CompContext_new () {
   CompContext *cc;
 
@@ -170,15 +178,14 @@ int AST_progsize (Node *node, SymTable *st) {
   if (NULL == node) return 0;
 
   switch (node->type) {
-  case N_PROGRAM:     opcode_c = 4; break;
+  case N_PROGRAM:     opcode_c = 5; break;
   case N_FUN_DEC:     opcode_c = 5; break;
   case N_VAR_DEC:     opcode_c = 0; break;
   case N_ARR_DEC:     opcode_c = 0; break;
   case N_OP_EXP:      opcode_c = 2; break;
   case N_INT_EXP:     opcode_c = 2; break;
-  case N_CALL_EXP:    opcode_c = 0; break;
+  case N_CALL_EXP:    opcode_c = 6; break;
   case N_READ_EXP:    opcode_c = 0; break;
-  case N_CALL_INST:   opcode_c = 0; break;
   case N_SET_INST:    opcode_c = 4; break;
   case N_IF_INST:     opcode_c = 4; break;
   case N_WHILE_INST:  opcode_c = 4; break;
@@ -217,6 +224,7 @@ void AST_cmp_program (Node *node, SymTable *st, Program *p, CompContext *cc, boo
   p->code[cc->pc++] = _STACK;
   p->code[cc->pc++] = 1;
   p->code[cc->pc++] = _CALL;
+  p->code[cc->pc++] = 0;
   p->code[cc->pc++] = _STOP;
 
   /* Compilation des déclarations globales */
@@ -349,21 +357,25 @@ void AST_cmp_int_exp (Node *node, SymTable *st, Program *p, CompContext *cc, boo
   if (follow) AST_callCompFunc (node->next, st, p, cc, follow);
 }
 
-/* -- inutile -- */
 void AST_cmp_call_exp (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
-  AST_callCompFunc (node->child, st, p, cc, true);
-  AST_callCompFunc (node->next, st, p, cc, true);
+  AST_cmp_call (node, st, p, cc, follow);
+  /* Symbol *func; */
+
+  /* p->code[cc->pc++] = _STACK; */
+  /* p->code[cc->pc++] = 1; */
+  /* AST_callCompFunc (node->child, st, p, cc, true); */
+
+  /* func = SymTable_find (st, node->value->as.string, cc->context); */
+  /* p->code[cc->pc++] = _CALL; */
+  /* p->code[cc->pc++] = func->address; */
+
+  /* if (follow) AST_callCompFunc (node->next, st, p, cc, follow); */
 }
 
 void AST_cmp_read_exp (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
-  AST_callCompFunc (node->next, st, p, cc, true);
-}
-
-void AST_cmp_call_inst (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
-  AST_callCompFunc (node->child, st, p, cc, true);
+  p->code[cc->pc++] = _READ;
   if (follow) AST_callCompFunc (node->next, st, p, cc, follow);
 }
-/* -- fin inutile -- */
 
 void AST_cmp_set_inst (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
   Symbol *var;
@@ -413,6 +425,7 @@ void AST_cmp_if_inst (Node *node, SymTable *st, Program *p, CompContext *cc, boo
   if (NULL != node->child->next->next) {
     p->code[cc->pc++] = _JUMP;
     p->code[endif = cc->pc++] = 0;
+    p->code[iffalse] = cc->pc;
     AST_callCompFunc (node->child->next->next, st, p, cc, false);
     p->code[endif] = cc->pc;
   }

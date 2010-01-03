@@ -28,6 +28,7 @@ bool       SymTable_existsInContext (SymTable *st, char *name, Symbol *context);
 Symbol *   SymTable_find    (SymTable *st, char *name, Symbol *context);
 bool       SymTable_hasFailed(bool set);
 void       SymTable_warnUnused (SymTable *st);
+int        SymTable_globalSize (SymTable *st);
 
 Symbol * Symbol_new (char *name, int scope, int type, Symbol *context);
 void     Symbol_destroy (Symbol *s);
