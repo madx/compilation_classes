@@ -120,13 +120,13 @@ Program * Program_resize (Program *p) {
   return new;
 }
 
-void Program_dump (Program *p, SymTable *st, FILE *stream) {
+void Program_dump (Program *p, SymTable *st) {
   int i;
-  fprintf(stream, "%d:%d:", SymTable_globalSize (st), p->size);
+  printf ("%d:%d:", SymTable_globalSize (st), p->size);
   for (i = 0; i < p->size - 1; i++)
-    fprintf (stream, "%d:", p->code[i]);
-  fprintf (stream, "%d\n", p->code[i]);
-  fflush (stream);
+    printf ("%d:", p->code[i]);
+  printf ("%d\n", p->code[i]);
+  fflush (stdout);
 }
 
 CompContext * CompContext_new () {

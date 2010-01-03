@@ -26,7 +26,7 @@ Program * Program_new     (int size);
 void      Program_destroy (Program *p);
 void      Program_print   (Program *p);
 Program * Program_resize  (Program *p);
-void      Program_dump (Program *p, SymTable *st, FILE *stream);
+void      Program_dump    (Program *p, SymTable *st);
 
 CompContext * CompContext_new ();
 void          CompContext_reset (CompContext *cc, Symbol *context);

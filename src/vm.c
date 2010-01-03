@@ -44,6 +44,42 @@ VM * VM_new (Program *p, int glob_c) {
   return vm;
 }
 
+Program * VM_extractProgram (VM *vm) {
+  Program *p;
+
+  p = Program_new (vm->BEG);
+  p->code = memcpy (p->code, vm->mem, p->size * sizeof(*vm->mem));
+
+  return p;
+}
+
+VM * VM_fromBytecode (FILE *stream) {
+  int glob_c, prog_len, i;
+  Program *p;
+  VM *vm;
+
+  if (fscanf (stream, "%d:%d", &glob_c, &prog_len) < 2) {
+    fprintf (stderr, "Bytecode format error\n"
+                     "Expected glob_count:prog_size:opcode1:...:opcodeN\n");
+    exit (EXIT_FAILURE);
+  }
+
+  p = Program_new (prog_len);
+  vm = VM_new (p, glob_c);
+  Program_destroy (p);
+
+  for (i = 0; i < prog_len; i++) {
+    if (fscanf (stream, ":%d", &vm->mem[i]) < 1) {
+      fprintf (stderr, "Bytecode format error\n"
+                       "Expected glob_count:prog_size:opcode1:...:opcodeN\n");
+      exit (EXIT_FAILURE);
+    }
+  }
+
+
+  return vm;
+}
+
 void VM_printStack (VM *vm) {
   int i;
   if (vm->BP == vm->SP)
@@ -76,6 +112,10 @@ int VM_run (VM *vm) {
   }
   for (;;) {
     if (debug) printf ("%d\t%d\t%d\t", vm->CO, vm->SP, vm->BEL);
+    if (vm->CO >= vm->size) {
+      printf ("\033[1;31m!!!\033[0m "
+              "Stack is full, rerun after setting STACKSIZE\n");
+    }
     switch (vm->mem[vm->CO++]) {
     case _PUSHC:
       if (debug) printf ("EMPC\t%d\t", vm->mem[vm->CO]);
@@ -222,6 +262,7 @@ int VM_run (VM *vm) {
     }
   }
   _exit_: exit_status = vm->mem[--vm->SP];
+  printf ("\033[1;33m?>\033[0m %d\n", exit_status);
 
   return exit_status;
 }
