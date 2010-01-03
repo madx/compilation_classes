@@ -107,7 +107,7 @@ Program * Program_resize (Program *p) {
       if (OpCodes[j].opCode == c) break;
     if (c == _NIL) break;
 
-    if (OpCodes[j].hasOperand) {
+    if (OpCodes[j].hasOperand == true) {
       psize += 2;
       i++;
     } else {

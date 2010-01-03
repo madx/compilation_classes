@@ -112,9 +112,10 @@ int VM_run (VM *vm) {
   }
   for (;;) {
     if (debug) printf ("%d\t%d\t%d\t", vm->CO, vm->SP, vm->BEL);
-    if (vm->CO >= vm->size) {
-      printf ("\033[1;31m!!!\033[0m "
-              "Stack is full, rerun after setting STACKSIZE\n");
+    if (vm->SP >= vm->size) {
+      printf ("\033[1;31m!!!\033[0m Stack overflow. "
+              "Try to rerun after setting STACKSIZE to a value > 1024\n");
+      exit (EXIT_FAILURE);
     }
     switch (vm->mem[vm->CO++]) {
     case _PUSHC:
