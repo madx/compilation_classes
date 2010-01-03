@@ -443,12 +443,11 @@ void AST_cmp_while_inst (Node *node, SymTable *st, Program *p, CompContext *cc, 
   p->code[out = cc->pc++] = 0;
 
   /* Code si condition vraie */
-  AST_callCompFunc (node->child->next, st, p, cc, false);
+  AST_callCompFunc (node->child->next, st, p, cc, true);
   p->code[cc->pc++] = _JUMP;
   p->code[cc->pc++] = in;
   p->code[out] = cc->pc;
 
-  AST_callCompFunc (node->child, st, p, cc, true);
   AST_callCompFunc (node->next, st, p, cc, true);
 }
 
