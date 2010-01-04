@@ -132,13 +132,14 @@ void SymTable_build (SymTable *st, Node *n) {
         SymTable_hasFailed (true);
       }
       if (n->type == N_CALL || n->type == N_CALL_EXP) {
-        int argc = Node_countType (n->child, N_VAR);
-        int xptd_argc;
-        Symbol *tmp;
-        if (NULL != (tmp=SymTable_find (st, n->value->as.string, NULL)))
-          xptd_argc = tmp->data;
-        else
-          xptd_argc = 0;
+        int argc = 0;
+        int xptd_argc = SymTable_find (st, n->value->as.string, NULL)->data;
+        Node *tmp = n->child;
+        while (tmp != NULL) {
+          argc++;
+          tmp = tmp->next;
+        }
+
         if (xptd_argc != argc) {
           fprintf (stderr, "error: %s called with %d arguments, expecting %d\n",
                   n->value->as.string, argc, xptd_argc);

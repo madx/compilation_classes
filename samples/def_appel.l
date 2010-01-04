@@ -8,6 +8,7 @@ renvoyer($z);
 main() 
 entier $a;
 {
+  add(lire(), lire());
 $a = add(lire(), lire());
 ecrire($a);
 }
