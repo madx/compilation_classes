@@ -17,6 +17,7 @@ Node * rule_callInstruction   ();
 Node * rule_setInstruction    ();
 Node * rule_ifInstruction     ();
 Node * rule_whileInstruction  ();
+Node * rule_doWhileInstruction();
 Node * rule_returnInstruction ();
 Node * rule_writeInstruction  ();
 Node * rule_voidInstruction   ();

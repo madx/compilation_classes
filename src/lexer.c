@@ -19,15 +19,6 @@ int yylex () {
   strempty (yytext);
 
   while (EOF != (c = fgetc (yyin))) {
-    /* switch (char_type (c)) { */
-    /* case CT_OTHER: printf ("other: '%c' (%d)\n", c, c); break; */
-    /* case CT_WHITE: printf ("white: '%c' (%d)\n", c, c); break; */
-    /* case CT_ALPHA: printf ("alpha: '%c' (%d)\n", c, c); break; */
-    /* case CT_DIGIT: printf ("digit: '%c' (%d)\n", c, c); break; */
-    /* case CT_SPUNC: printf ("spunc: '%c' (%d)\n", c, c); break; */
-    /* case CT_DPUNC: printf ("dpunc: '%c' (%d)\n", c, c); break; */
-    /* case CT_VARID: printf ("varid: '%c' (%d)\n", c, c); break; */
-    /* } */
     switch (char_type (c)) {
       /* Ponctuation simple et double */
       case CT_SPUNC:

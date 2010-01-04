@@ -34,27 +34,28 @@ struct {
   CompFunc func;
   char     *name;
 } CompFuncs[] = {
-  { N_PROGRAM,     &AST_cmp_program,     "AST_cmp_program    " },
-  { N_FUN_DEC,     &AST_cmp_fun_dec,     "AST_cmp_fun_dec    " },
-  { N_VAR_DEC,     &AST_cmp_var_dec,     "AST_cmp_var_dec    " },
-  { N_ARR_DEC,     &AST_cmp_arr_dec,     "AST_cmp_arr_dec    " },
-  { N_OP_EXP,      &AST_cmp_op_exp,      "AST_cmp_op_exp     " },
-  { N_INT_EXP,     &AST_cmp_int_exp,     "AST_cmp_int_exp    " },
-  { N_CALL_EXP,    &AST_cmp_call_exp,    "AST_cmp_call_exp   " },
-  { N_READ_EXP,    &AST_cmp_read_exp,    "AST_cmp_read_exp   " },
-  { N_SET_INST,    &AST_cmp_set_inst,    "AST_cmp_set_inst   " },
-  { N_IF_INST,     &AST_cmp_if_inst,     "AST_cmp_if_inst    " },
-  { N_WHILE_INST,  &AST_cmp_while_inst,  "AST_cmp_while_inst " },
-  { N_RETURN_INST, &AST_cmp_return_inst, "AST_cmp_return_inst" },
-  { N_WRITE_INST,  &AST_cmp_write_inst,  "AST_cmp_write_inst " },
-  { N_VOID_INST,   &AST_cmp_void_inst,   "AST_cmp_void_inst  " },
-  { N_BLOCK_INST,  &AST_cmp_block_inst,  "AST_cmp_block_inst " },
-  { N_VAR,         &AST_cmp_var,         "AST_cmp_var        " },
-  { N_CALL,        &AST_cmp_call,        "AST_cmp_call       " },
-  { N_EXP_LIST,    &AST_cmp_exp_list,    "AST_cmp_exp_list   " },
-  { N_INST_LIST,   &AST_cmp_inst_list,   "AST_cmp_inst_list  " },
-  { N_DEC_LIST,    &AST_cmp_dec_list,    "AST_cmp_dec_list   " },
-  { N_FAKE_NODE,   &AST_cmp_fake_node,   "AST_cmp_fake_node  " }
+  { N_PROGRAM,      &AST_cmp_program,       "AST_cmp_program       " },
+  { N_FUN_DEC,      &AST_cmp_fun_dec,       "AST_cmp_fun_dec       " },
+  { N_VAR_DEC,      &AST_cmp_var_dec,       "AST_cmp_var_dec       " },
+  { N_ARR_DEC,      &AST_cmp_arr_dec,       "AST_cmp_arr_dec       " },
+  { N_OP_EXP,       &AST_cmp_op_exp,        "AST_cmp_op_exp        " },
+  { N_INT_EXP,      &AST_cmp_int_exp,       "AST_cmp_int_exp       " },
+  { N_CALL_EXP,     &AST_cmp_call_exp,      "AST_cmp_call_exp      " },
+  { N_READ_EXP,     &AST_cmp_read_exp,      "AST_cmp_read_exp      " },
+  { N_SET_INST,     &AST_cmp_set_inst,      "AST_cmp_set_inst      " },
+  { N_IF_INST,      &AST_cmp_if_inst,       "AST_cmp_if_inst       " },
+  { N_WHILE_INST,   &AST_cmp_while_inst,    "AST_cmp_while_inst    " },
+  { N_DOWHILE_INST, &AST_cmp_do_while_inst, "AST_cmp_do_while_inst " },
+  { N_RETURN_INST,  &AST_cmp_return_inst,   "AST_cmp_return_inst   " },
+  { N_WRITE_INST,   &AST_cmp_write_inst,    "AST_cmp_write_inst    " },
+  { N_VOID_INST,    &AST_cmp_void_inst,     "AST_cmp_void_inst     " },
+  { N_BLOCK_INST,   &AST_cmp_block_inst,    "AST_cmp_block_inst    " },
+  { N_VAR,          &AST_cmp_var,           "AST_cmp_var           " },
+  { N_CALL,         &AST_cmp_call,          "AST_cmp_call          " },
+  { N_EXP_LIST,     &AST_cmp_exp_list,      "AST_cmp_exp_list      " },
+  { N_INST_LIST,    &AST_cmp_inst_list,     "AST_cmp_inst_list     " },
+  { N_DEC_LIST,     &AST_cmp_dec_list,      "AST_cmp_dec_list      " },
+  { N_FAKE_NODE,    &AST_cmp_fake_node,     "AST_cmp_fake_node     " }
 };
 
 Program * Program_new (int size) {
@@ -178,27 +179,28 @@ int AST_progsize (Node *node, SymTable *st) {
   if (NULL == node) return 0;
 
   switch (node->type) {
-  case N_PROGRAM:     opcode_c = 5; break;
-  case N_FUN_DEC:     opcode_c = 5; break;
-  case N_VAR_DEC:     opcode_c = 0; break;
-  case N_ARR_DEC:     opcode_c = 0; break;
-  case N_OP_EXP:      opcode_c = 2; break;
-  case N_INT_EXP:     opcode_c = 2; break;
-  case N_CALL_EXP:    opcode_c = 6; break;
-  case N_READ_EXP:    opcode_c = 0; break;
-  case N_SET_INST:    opcode_c = 4; break;
-  case N_IF_INST:     opcode_c = 4; break;
-  case N_WHILE_INST:  opcode_c = 4; break;
-  case N_RETURN_INST: opcode_c = 2; break;
-  case N_WRITE_INST:  opcode_c = 1; break;
-  case N_VOID_INST:   opcode_c = 0; break;
-  case N_BLOCK_INST:  opcode_c = 0; break;
-  case N_VAR:         opcode_c = 4; break;
-  case N_CALL:        opcode_c = 6; break;
-  case N_EXP_LIST:    opcode_c = 0; break;
-  case N_INST_LIST:   opcode_c = 0; break;
-  case N_DEC_LIST:    opcode_c = 0; break;
-  case N_FAKE_NODE:   opcode_c = 0; break;
+  case N_PROGRAM:      opcode_c = 5; break;
+  case N_FUN_DEC:      opcode_c = 5; break;
+  case N_VAR_DEC:      opcode_c = 0; break;
+  case N_ARR_DEC:      opcode_c = 0; break;
+  case N_OP_EXP:       opcode_c = 2; break;
+  case N_INT_EXP:      opcode_c = 2; break;
+  case N_CALL_EXP:     opcode_c = 6; break;
+  case N_READ_EXP:     opcode_c = 0; break;
+  case N_SET_INST:     opcode_c = 4; break;
+  case N_IF_INST:      opcode_c = 4; break;
+  case N_WHILE_INST:   opcode_c = 4; break;
+  case N_DOWHILE_INST: opcode_c = 4; break;
+  case N_RETURN_INST:  opcode_c = 2; break;
+  case N_WRITE_INST:   opcode_c = 1; break;
+  case N_VOID_INST:    opcode_c = 0; break;
+  case N_BLOCK_INST:   opcode_c = 0; break;
+  case N_VAR:          opcode_c = 4; break;
+  case N_CALL:         opcode_c = 6; break;
+  case N_EXP_LIST:     opcode_c = 0; break;
+  case N_INST_LIST:    opcode_c = 0; break;
+  case N_DEC_LIST:     opcode_c = 0; break;
+  case N_FAKE_NODE:    opcode_c = 0; break;
   }
 
   return opcode_c +
@@ -285,7 +287,7 @@ void AST_cmp_fun_dec (Node *node, SymTable *st, Program *p, CompContext *cc, boo
 
   CompContext_reset (cc, old_context);
 
-  if (follow) AST_callCompFunc (node->next, st, p, cc, follow);
+  if (follow) AST_callCompFunc (node->next, st, p, cc, true);
 }
 
 void AST_cmp_var_dec (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
@@ -308,7 +310,7 @@ void AST_cmp_var_dec (Node *node, SymTable *st, Program *p, CompContext *cc, boo
     break;
   }
 
-  if (follow) AST_callCompFunc (node->next, st, p, cc, follow);
+  if (follow) AST_callCompFunc (node->next, st, p, cc, true);
 }
 
 void AST_cmp_arr_dec (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
@@ -319,7 +321,7 @@ void AST_cmp_arr_dec (Node *node, SymTable *st, Program *p, CompContext *cc, boo
     exit (EXIT_FAILURE);
   }
 
-  if (follow) AST_cmp_var_dec (node, st, p, cc, follow);
+  if (follow) AST_cmp_var_dec (node, st, p, cc, true);
 }
 
 void AST_cmp_op_exp (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
@@ -348,13 +350,13 @@ void AST_cmp_op_exp (Node *node, SymTable *st, Program *p, CompContext *cc, bool
     break;
   }
 
-  if (follow) AST_callCompFunc (node->next, st, p, cc, follow);
+  if (follow) AST_callCompFunc (node->next, st, p, cc, true);
 }
 
 void AST_cmp_int_exp (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
   p->code[cc->pc++] = _PUSHC;
   p->code[cc->pc++] = node->value->as.number;
-  if (follow) AST_callCompFunc (node->next, st, p, cc, follow);
+  if (follow) AST_callCompFunc (node->next, st, p, cc, true);
 }
 
 void AST_cmp_call_exp (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
@@ -363,7 +365,7 @@ void AST_cmp_call_exp (Node *node, SymTable *st, Program *p, CompContext *cc, bo
 
 void AST_cmp_read_exp (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
   p->code[cc->pc++] = _READ;
-  if (follow) AST_callCompFunc (node->next, st, p, cc, follow);
+  if (follow) AST_callCompFunc (node->next, st, p, cc, true);
 }
 
 void AST_cmp_set_inst (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
@@ -394,7 +396,7 @@ void AST_cmp_set_inst (Node *node, SymTable *st, Program *p, CompContext *cc, bo
     break;
   }
 
-  if (follow) AST_callCompFunc (node->next, st, p, cc, follow);
+  if (follow) AST_callCompFunc (node->next, st, p, cc, true);
 }
 
 void AST_cmp_if_inst (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
@@ -418,7 +420,7 @@ void AST_cmp_if_inst (Node *node, SymTable *st, Program *p, CompContext *cc, boo
     p->code[endif] = cc->pc;
   }
 
-  AST_callCompFunc (node->next, st, p, cc, true);
+  if (follow) AST_callCompFunc (node->next, st, p, cc, true);
 }
 
 void AST_cmp_while_inst (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
@@ -436,7 +438,22 @@ void AST_cmp_while_inst (Node *node, SymTable *st, Program *p, CompContext *cc, 
   p->code[cc->pc++] = in;
   p->code[out] = cc->pc;
 
-  AST_callCompFunc (node->next, st, p, cc, true);
+  if (follow) AST_callCompFunc (node->next, st, p, cc, true);
+}
+
+void AST_cmp_do_while_inst (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
+  int in;
+
+  /* Compilation du corps */
+  in = cc->pc;
+  AST_callCompFunc (node->child, st, p, cc, false);
+
+  /* Condition de retour */
+  AST_callCompFunc (node->child->next, st, p, cc, true);
+  p->code[cc->pc++] = _IFTRUE;
+  p->code[cc->pc++] = in;
+
+  if (follow) AST_callCompFunc (node->next, st, p, cc, true);
 }
 
 void AST_cmp_return_inst (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
@@ -447,22 +464,22 @@ void AST_cmp_return_inst (Node *node, SymTable *st, Program *p, CompContext *cc,
   p->code[cc->pc++] = _OUT;
   p->code[cc->pc++] = _RETURN;
 
-  if (follow) AST_callCompFunc (node->next, st, p, cc, follow);
+  if (follow) AST_callCompFunc (node->next, st, p, cc, true);
 }
 
 void AST_cmp_write_inst (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
   AST_callCompFunc (node->child, st, p, cc, true);
   p->code[cc->pc++] = _WRITE;
-  if (follow) AST_callCompFunc (node->next, st, p, cc, follow);
+  if (follow) AST_callCompFunc (node->next, st, p, cc, true);
 }
 
 void AST_cmp_void_inst (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
-  if (follow) AST_callCompFunc (node->next, st, p, cc, follow);
+  if (follow) AST_callCompFunc (node->next, st, p, cc, true);
 }
 
 void AST_cmp_block_inst (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
-  AST_callCompFunc (node->child, st, p, cc, follow);
-  if (follow) AST_callCompFunc (node->next, st, p, cc, follow);
+  AST_callCompFunc (node->child, st, p, cc, true);
+  if (follow) AST_callCompFunc (node->next, st, p, cc, true);
 }
 
 void AST_cmp_var (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
@@ -473,7 +490,7 @@ void AST_cmp_var (Node *node, SymTable *st, Program *p, CompContext *cc, bool fo
   switch (var->scope) {
   case SC_GLOBAL:
     if (NULL != node->child) {
-      AST_callCompFunc (node->child, st, p, cc, follow);
+      AST_callCompFunc (node->child, st, p, cc, true);
       p->code[cc->pc++] = _PUSHT;
       p->code[cc->pc++] = var->address;
     } else {
@@ -491,7 +508,7 @@ void AST_cmp_var (Node *node, SymTable *st, Program *p, CompContext *cc, bool fo
     break;
   }
 
-  if (follow) AST_callCompFunc (node->next, st, p, cc, follow);
+  if (follow) AST_callCompFunc (node->next, st, p, cc, true);
 }
 
 void AST_cmp_call (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
@@ -518,7 +535,7 @@ void AST_cmp_call (Node *node, SymTable *st, Program *p, CompContext *cc, bool f
     p->code[cc->pc++] = -(argc);
   }
 
-  if (follow) AST_callCompFunc (node->next, st, p, cc, follow);
+  if (follow) AST_callCompFunc (node->next, st, p, cc, true);
 }
 
 void AST_cmp_exp_list (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
@@ -527,8 +544,8 @@ void AST_cmp_exp_list (Node *node, SymTable *st, Program *p, CompContext *cc, bo
 }
 
 void AST_cmp_inst_list (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
-  AST_callCompFunc (node->child, st, p, cc, follow);
-  if (follow) AST_callCompFunc (node->next, st, p, cc, follow);
+  AST_callCompFunc (node->child, st, p, cc, true);
+  if (follow) AST_callCompFunc (node->next, st, p, cc, true);
 }
 
 void AST_cmp_dec_list (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {

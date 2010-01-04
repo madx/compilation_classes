@@ -48,6 +48,7 @@ void AST_cmp_call_inst   (Node *node, SymTable *st, Program *p, CompContext *cc,
 void AST_cmp_set_inst    (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);
 void AST_cmp_if_inst     (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);
 void AST_cmp_while_inst  (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);
+void AST_cmp_do_while_inst  (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);
 void AST_cmp_return_inst (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);
 void AST_cmp_write_inst  (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);
 void AST_cmp_void_inst   (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow);

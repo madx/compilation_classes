@@ -131,7 +131,7 @@ int VM_run (VM *vm) {
       vm->mem[vm->SP++] = vm->mem[vm->BEG + vm->mem[vm->CO++]];
       break;
     case _PUSHT:
-      if (debug) printf ("EMPT\t%d[%d]\t", vm->mem[vm->CO], vm->mem[vm->SP]);
+      if (debug) printf ("EMPT\t%d[%d]\t", vm->mem[vm->CO], vm->mem[vm->SP-1]);
       i = vm->mem[--vm->SP];
       vm->mem[vm->SP++] = vm->mem[vm->BEG + vm->mem[vm->CO++] + i];
       break;

@@ -19,7 +19,7 @@ char *strdup (const char *str) {
 
 static char *node_names[] = {
   "program",   "fun_dec",    "var_dec",    "arr_dec",
-  "op_exp",    "int_exp",    "call_exp",   "read_exp",
+  "op_exp",    "int_exp",    "call_exp",   "read_exp",    "do_while",
   "set_inst",  "if_inst",    "while_inst", "return_inst", "write_inst",
   "void_inst", "block_inst", "var",        "call",        "exp_list",
   "inst_list", "dec_list",   "fake_node"
@@ -117,8 +117,10 @@ Node * Node_lastSibling (Node *n) {
 int Node_countType (Node *n, NodeType type) {
   int sum = 0;
   if (NULL == n) return 0;
-  if (n->child != NULL) sum += Node_countType (n->child, type);
-  if (n->next != NULL)  sum += Node_countType (n->next, type);
+  else {
+    if (n->child != NULL) sum += Node_countType (n->child, type);
+    if (n->next != NULL)  sum += Node_countType (n->next, type);
+  }
 
   return (n->type == type) ? 1 + sum : 0 + sum;
 }

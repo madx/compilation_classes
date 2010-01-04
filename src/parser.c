@@ -210,6 +210,7 @@ Node * rule_paramList () {
  * instruction -> returnInstruction
  * instruction -> writeInstruction
  * instruction -> voidInstruction
+ * instruction -> doWhileInstruction
  */
 Node * rule_instruction () {
   if (yycc == VAR_ID) {
@@ -229,6 +230,9 @@ Node * rule_instruction () {
 
   } else if (yycc == WRITE)  {
     return rule_writeInstruction ();
+
+  } else if (yycc == DO)  {
+    return rule_doWhileInstruction ();
 
   } else if (yycc == ';')    {
     return rule_voidInstruction ();
@@ -265,11 +269,13 @@ Node * rule_instructionList () {
   Node *head = NULL, *tail = NULL;
 
   if (yycc == VAR_ID || yycc == FUN_ID || yycc == '{'    || yycc == ';' ||
-      yycc == IF     || yycc == WHILE  || yycc == RETURN || yycc == WRITE ) {
+      yycc == IF     || yycc == WHILE  || yycc == RETURN || yycc == WRITE ||
+      yycc == DO ) {
     head = rule_instruction ();
 
     if (yycc == VAR_ID || yycc == FUN_ID || yycc == '{'    || yycc == ';' ||
-        yycc == IF     || yycc == WHILE  || yycc == RETURN || yycc == WRITE ) {
+        yycc == IF     || yycc == WHILE  || yycc == RETURN || yycc == WRITE ||
+        yycc == DO ) {
       tail = rule_instructionList ();
       Node_lastSibling(head)->next = tail;
     }
@@ -338,7 +344,7 @@ Node * rule_ifInstruction () {
 
         if (yycc == VAR_ID  || yycc == FUN_ID || yycc == '{'    ||
             yycc == ';'     || yycc == IF     || yycc == WHILE  ||
-            yycc == RETURN  || yycc == WRITE ) {
+            yycc == RETURN  || yycc == WRITE  || yycc == DO) {
           then_inst = rule_instruction ();
           expr->next = then_inst;
 
@@ -347,7 +353,7 @@ Node * rule_ifInstruction () {
 
             if (yycc == VAR_ID  || yycc == FUN_ID || yycc == '{'    ||
                 yycc == ';'     || yycc == IF     || yycc == WHILE  ||
-                yycc == RETURN || yycc == WRITE ) {
+                yycc == RETURN  || yycc == WRITE  || yycc == DO) {
               else_inst = rule_instruction ();
               then_inst->next = else_inst;
             } else expecting ("instruction");
@@ -378,7 +384,7 @@ Node * rule_whileInstruction () {
 
         if (yycc == VAR_ID  || yycc == FUN_ID || yycc == '{'    ||
             yycc == ';'     || yycc == IF     || yycc == WHILE  ||
-            yycc == RETURN || yycc == WRITE ) {
+            yycc == RETURN  || yycc == WRITE  || yycc == DO) {
           inst = rule_instruction ();
           Node_lastSibling (expr)->next = inst;
 
@@ -388,6 +394,35 @@ Node * rule_whileInstruction () {
   } else expecting ("keyword WHILE");
 
   return Node_new (N_WHILE_INST, NULL, NULL, expr);
+}
+
+/* doWhileInstruction -> DO instruction WHILE expression
+ */
+Node * rule_doWhileInstruction () {
+  Node *expr = NULL, *inst = NULL;
+
+  if (yycc == DO) {
+    next_token ();
+
+    if (yycc == VAR_ID  || yycc == FUN_ID || yycc == '{'    ||
+        yycc == ';'     || yycc == IF     || yycc == WHILE  ||
+        yycc == RETURN  || yycc == WRITE  || yycc == DO) {
+      inst = rule_instruction ();
+
+      if (yycc == WHILE) {
+        next_token ();
+
+        if (yycc == '('  || yycc == NUMBER || yycc == VAR_ID ||
+            yycc == READ || yycc == FUN_ID) {
+          expr = rule_expression ();
+          Node_lastSibling (inst)->next = expr;
+
+        } else expecting ("instruction");
+      } else expecting ("keyword WHILE");
+    } else expecting ("expression");
+  } else expecting ("keyword DO");
+
+  return Node_new (N_DOWHILE_INST, NULL, NULL, inst);
 }
 
 /* returnInstruction -> RETURN expression ';'
@@ -437,7 +472,7 @@ Node * rule_writeInstruction () {
         } else expecting ("')'");
       } else expecting ("expression");
     } else expecting ("'('");
-  } else expecting ("keyword RETURN");
+  } else expecting ("keyword WRITE");
 
   return Node_new (N_WRITE_INST, NULL, NULL, expr);
 }
