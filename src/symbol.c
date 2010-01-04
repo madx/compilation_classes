@@ -87,6 +87,8 @@ void SymTable_build (SymTable *st, Node *n) {
 
     case N_FUN_DEC:
       tmp = Symbol_new (n->value->as.string, scope, ST_FUN, context);
+      tmp->data = Node_countType (n->child->child, N_VAR_DEC) +
+                  Node_countType (n->child->child, N_ARR_DEC);
       SymTable_add (st, tmp);
 
       old_context = context;
@@ -128,6 +130,15 @@ void SymTable_build (SymTable *st, Node *n) {
         fprintf (stderr, "error: %s '%s' undeclared\n", Node_name (n),
             n->value->as.string);
         SymTable_hasFailed (true);
+      }
+      if (n->type == N_CALL || n->type == N_CALL_EXP) {
+        int argc = Node_countType (n->child, N_VAR);
+        int xptd_argc = SymTable_find (st, n->value->as.string, NULL)->data;
+        if (xptd_argc != argc) {
+          fprintf (stderr, "error: %s called with %d arguments, expecting %d\n",
+                  n->value->as.string, argc, xptd_argc);
+          SymTable_hasFailed (true);
+        }
       }
       SymTable_build (st, n->child);
       SymTable_build (st, n->next);

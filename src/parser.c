@@ -722,7 +722,6 @@ Node * rule_exprList () {
     if (yycc == ',') {
       tail = rule_exprList2 ();
       Node_lastSibling(head)->next = tail;
-
     }
     return head;
   }
@@ -742,8 +741,7 @@ Node * rule_exprList2 () {
       yycc == READ || yycc == FUN_ID) {
       head = rule_expression ();
 
-      if (yycc == '('  || yycc == NUMBER || yycc == VAR_ID ||
-          yycc == READ || yycc == FUN_ID) {
+      if (yycc == ',') {
         tail = rule_exprList2 ();
         Node_lastSibling(head)->next = tail;
       }

@@ -359,17 +359,6 @@ void AST_cmp_int_exp (Node *node, SymTable *st, Program *p, CompContext *cc, boo
 
 void AST_cmp_call_exp (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
   AST_cmp_call (node, st, p, cc, follow);
-  /* Symbol *func; */
-
-  /* p->code[cc->pc++] = _STACK; */
-  /* p->code[cc->pc++] = 1; */
-  /* AST_callCompFunc (node->child, st, p, cc, true); */
-
-  /* func = SymTable_find (st, node->value->as.string, cc->context); */
-  /* p->code[cc->pc++] = _CALL; */
-  /* p->code[cc->pc++] = func->address; */
-
-  /* if (follow) AST_callCompFunc (node->next, st, p, cc, follow); */
 }
 
 void AST_cmp_read_exp (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
@@ -387,8 +376,7 @@ void AST_cmp_set_inst (Node *node, SymTable *st, Program *p, CompContext *cc, bo
   switch (var->scope) {
   case SC_GLOBAL:
     if (NULL != node->child->child) {
-      p->code[cc->pc++] = _PUSHC;
-      p->code[cc->pc++] = AST_get_arr_index (var, node->child->child);
+      AST_callCompFunc (node->child, st, p, cc, follow);
       p->code[cc->pc++] = _POPT;
       p->code[cc->pc++] = var->address;
     } else {
@@ -456,6 +444,8 @@ void AST_cmp_return_inst (Node *node, SymTable *st, Program *p, CompContext *cc,
 
   p->code[cc->pc++] = _POPL;
   p->code[cc->pc++] = -(cc->arg_c+3);
+  p->code[cc->pc++] = _OUT;
+  p->code[cc->pc++] = _RETURN;
 
   if (follow) AST_callCompFunc (node->next, st, p, cc, follow);
 }
@@ -477,30 +467,27 @@ void AST_cmp_block_inst (Node *node, SymTable *st, Program *p, CompContext *cc, 
 
 void AST_cmp_var (Node *node, SymTable *st, Program *p, CompContext *cc, bool follow) {
   Symbol *var;
-  int arr_index = 0;
 
   var = SymTable_find (st, node->value->as.string, cc->context);
-  arr_index = AST_get_arr_index (var, node->child);
 
   switch (var->scope) {
   case SC_GLOBAL:
     if (NULL != node->child) {
-      p->code[cc->pc++] = _PUSHC;
-      p->code[cc->pc++] = AST_get_arr_index (var, node->child);
+      AST_callCompFunc (node->child, st, p, cc, follow);
       p->code[cc->pc++] = _PUSHT;
       p->code[cc->pc++] = var->address;
     } else {
       p->code[cc->pc++] = _PUSHG;
-      p->code[cc->pc++] = var->address + arr_index;
+      p->code[cc->pc++] = var->address;
     }
     break;
   case SC_LOCAL:
     p->code[cc->pc++] = _PUSHL;
-    p->code[cc->pc++] = var->address + arr_index;
+    p->code[cc->pc++] = var->address;
     break;
   case SC_ARG:
     p->code[cc->pc++] = _PUSHL;
-    p->code[cc->pc++] = -(cc->arg_c + 2) + var->address + arr_index;
+    p->code[cc->pc++] = -(cc->arg_c + 2) + var->address;
     break;
   }
 
